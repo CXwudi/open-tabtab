@@ -432,15 +432,15 @@ Make the background service worker the sole workspace writer: receive `Command`s
 
 Task 1 (operations), Task 2 (repository). Sync deps (Task 6) injected via a `SyncEngine` interface stubbed here.
 
-- [ ] **Step 1:** `handleCommand`: `switch(cmd.type)` → map to the Task 1 operation; for mutation commands: load workspace, apply op, `version = nextVersion(current.version)`, `setWorkspace`, then update `syncState` per the **sync-enablement rule (Codex #4)** and enqueue accordingly:
+- [x] **Step 1:** `handleCommand`: `switch(cmd.type)` → map to the Task 1 operation; for mutation commands: load workspace, apply op, `version = nextVersion(current.version)`, `setWorkspace`, then update `syncState` per the **sync-enablement rule (Codex #4)** and enqueue accordingly:
   - `settings.enabled === false` → leave `syncState` clean: `status='idle'`, **no** `pendingVersion`; do **not** enqueue.
   - `enabled` but not configured (no `token` or `gistId`) → `status='dirty'`, `pendingVersion=version`; do **not** enqueue (nothing to push to yet).
   - `enabled` and configured → `status='dirty'`, `pendingVersion=version`, `syncEngine.enqueuePush()` (no-op stub until Task 6).
 
   Return `{ok:true, snapshot}`.
-- [ ] **Step 2:** `getState` returns the current snapshot (bootstrapping the workspace via `bootstrapWorkspace()` on first run, leaving syncState clean — see §0 invariant). `importBackup` validates via `parseBackup`, replaces the whole workspace, bumps version, applies the same sync-enablement rule as Step 1. Sync/settings commands (`reconcile`, `setGistSettings` (merge the `GistSettingsPatch` — preserve token unless `clearToken`), `testConnection`, `createGist`, `pullNow`, `pushNow`, `resolveConflict`) delegate to `SyncEngine` (Task 6).
-- [ ] **Step 3:** In `entrypoints/background.ts`, register the typed `onMessage('dispatchCommand', ({data}) => handleCommand(data, deps))`. No snapshot broadcast — persistence + each page's `storage.watch` (Task 7) keeps multiple new-tab pages consistent.
-- [ ] **Step 4:** Wrap all handling in try/catch → `{ok:false, error}` (never throw across the message boundary). Never log tokens.
+- [x] **Step 2:** `getState` returns the current snapshot (bootstrapping the workspace via `bootstrapWorkspace()` on first run, leaving syncState clean — see §0 invariant). `importBackup` validates via `parseBackup`, replaces the whole workspace, bumps version, applies the same sync-enablement rule as Step 1. Sync/settings commands (`reconcile`, `setGistSettings` (merge the `GistSettingsPatch` — preserve token unless `clearToken`), `testConnection`, `createGist`, `pullNow`, `pushNow`, `resolveConflict`) delegate to `SyncEngine` (Task 6).
+- [x] **Step 3:** In `entrypoints/background.ts`, register the typed `onMessage('dispatchCommand', ({data}) => handleCommand(data, deps))`. No snapshot broadcast — persistence + each page's `storage.watch` (Task 7) keeps multiple new-tab pages consistent.
+- [x] **Step 4:** Wrap all handling in try/catch → `{ok:false, error}` (never throw across the message boundary). Never log tokens.
 
 #### 5.4 Verification
 

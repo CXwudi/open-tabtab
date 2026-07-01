@@ -1,25 +1,23 @@
 import { messaging } from '../src/messaging/messaging';
-import type { Snapshot } from '../src/messaging/protocol';
+import { handleCommand, type SyncEngine } from '../src/background/handler';
+import { StorageRepository } from '../src/storage/repository';
 
-const initialSnapshot: Snapshot = {
-  workspace: {
-    version: 0,
-    spaceOrder: [],
-    spaces: {},
-  },
-  syncState: {
-    status: 'idle',
-  },
-  settings: {
-    enabled: false,
-    filename: 'open-tabtab-backup.json',
-    hasToken: false,
-  },
+const syncEngine: SyncEngine = {
+  enqueuePush: () => undefined,
+  reconcile: () => undefined,
+  setSettings: () => undefined,
+  testConnection: () => undefined,
+  createGist: () => undefined,
+  pull: () => undefined,
+  push: () => undefined,
+  resolveConflict: () => undefined,
 };
 
 export default defineBackground(() => {
-  messaging.onMessage('dispatchCommand', async () => ({
-    ok: true,
-    snapshot: initialSnapshot,
+  const repository = new StorageRepository();
+
+  messaging.onMessage('dispatchCommand', ({ data }) => handleCommand(data, {
+    repository,
+    syncEngine,
   }));
 });
