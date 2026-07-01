@@ -1,3 +1,6 @@
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { encodeBrowserTabId, type DndDragData } from '../dnd/dnd-config';
 import type { BrowserTabView } from './CurrentTabsSidebar';
 
 /**
@@ -6,8 +9,26 @@ import type { BrowserTabView } from './CurrentTabsSidebar';
  * in Task 9.
  */
 export default function CurrentTabItem({ tab }: { tab: BrowserTabView }) {
+  const draggable = useDraggable({
+    id: encodeBrowserTabId(tab.id),
+    data: {
+      kind: 'browserTab',
+      tab: { title: tab.title, url: tab.url, favIconUrl: tab.favIconUrl },
+    } satisfies DndDragData,
+  });
+  const style = {
+    transform: CSS.Translate.toString(draggable.transform),
+  };
+
   return (
-    <div className="current-tab" title={tab.url}>
+    <div
+      ref={draggable.setNodeRef}
+      style={style}
+      className={`current-tab ${draggable.isDragging ? 'current-tab--dragging' : ''}`}
+      title={tab.url}
+      {...draggable.attributes}
+      {...draggable.listeners}
+    >
       <span className="drag-handle" aria-hidden="true">⋮⋮</span>
       {tab.favIconUrl ? (
         <img className="current-tab-icon" src={tab.favIconUrl} alt="" loading="lazy" />

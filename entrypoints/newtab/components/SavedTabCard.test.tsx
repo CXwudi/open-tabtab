@@ -17,7 +17,17 @@ describe('SavedTabCard', () => {
   it('invokes onEdit from the menu', async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
-    render(<SavedTabCard tab={tab} onEdit={onEdit} onDelete={() => {}} />);
+    render(
+      <SavedTabCard
+        spaceId="s1"
+        groupId="g1"
+        tab={tab}
+        orderedIds={['t1']}
+        groupTabOrders={{ 's1:g1': ['t1'] }}
+        onEdit={onEdit}
+        onDelete={() => {}}
+      />,
+    );
 
     await user.click(screen.getByRole('button', { name: 'Actions for Example' }));
     await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
@@ -28,7 +38,17 @@ describe('SavedTabCard', () => {
   it('invokes onDelete from the menu', async () => {
     const user = userEvent.setup();
     const onDelete = vi.fn();
-    render(<SavedTabCard tab={tab} onEdit={() => {}} onDelete={onDelete} />);
+    render(
+      <SavedTabCard
+        spaceId="s1"
+        groupId="g1"
+        tab={tab}
+        orderedIds={['t1']}
+        groupTabOrders={{ 's1:g1': ['t1'] }}
+        onEdit={() => {}}
+        onDelete={onDelete}
+      />,
+    );
 
     await user.click(screen.getByRole('button', { name: 'Actions for Example' }));
     await user.click(screen.getByRole('menuitem', { name: 'Delete' }));

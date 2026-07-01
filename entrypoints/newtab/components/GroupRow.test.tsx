@@ -22,7 +22,13 @@ function renderRow() {
   const dispatch = vi.fn(async () => ({ ok: true }));
   render(
     <CommandBusProvider bus={makeBus(dispatch)}>
-      <GroupRow spaceId="s1" group={group} tabs={group.tabs} />
+      <GroupRow
+        spaceId="s1"
+        group={group}
+        tabs={group.tabs}
+        groupOrder={['g1']}
+        groupTabOrders={{ 's1:g1': ['t1'] }}
+      />
     </CommandBusProvider>,
   );
   return dispatch;

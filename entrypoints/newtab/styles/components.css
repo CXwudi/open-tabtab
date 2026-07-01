@@ -74,7 +74,16 @@
   cursor: grab;
   opacity: 0;
   font-size: 11px;
-  letter-spacing: -2px;
+  letter-spacing: 0;
+}
+.drag-handle--button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  line-height: 1;
+}
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 /* Inline editable
@@ -212,6 +221,9 @@
 .space-item--selected {
   background: var(--bg-selected);
   font-weight: 600;
+}
+.space-item--dragging {
+  opacity: 0.6;
 }
 .space-icon {
   color: var(--text-faint);

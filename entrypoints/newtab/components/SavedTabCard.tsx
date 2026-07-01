@@ -1,8 +1,15 @@
 import { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { SavedTab } from '@/src/domain/types';
+import { encodeTabId, type DndDragData } from '../dnd/dnd-config';
 
 type SavedTabCardProps = {
+  spaceId: string;
+  groupId: string;
   tab: SavedTab;
+  orderedIds: string[];
+  groupTabOrders: Record<string, string[]>;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -12,11 +19,34 @@ type SavedTabCardProps = {
  * delete. Opening the tab on click is wired later (Task 9); this component only
  * renders content and surfaces edit/delete intents to its parent.
  */
-export default function SavedTabCard({ tab, onEdit, onDelete }: SavedTabCardProps) {
+export default function SavedTabCard({
+  spaceId,
+  groupId,
+  tab,
+  orderedIds,
+  groupTabOrders,
+  onEdit,
+  onDelete,
+}: SavedTabCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const sortable = useSortable({
+    id: encodeTabId(spaceId, groupId, tab.id),
+    data: { kind: 'tab', spaceId, groupId, orderedIds, groupTabOrders } satisfies DndDragData,
+  });
+  const style = {
+    transform: CSS.Transform.toString(sortable.transform),
+    transition: sortable.transition,
+  };
 
   return (
-    <div className="tab-card" title={tab.url}>
+    <div
+      ref={sortable.setNodeRef}
+      style={style}
+      className={`tab-card ${sortable.isDragging ? 'tab-card--dragging' : ''}`}
+      title={tab.url}
+      {...sortable.attributes}
+      {...sortable.listeners}
+    >
       {tab.favIconUrl ? (
         <img className="tab-card-icon" src={tab.favIconUrl} alt="" loading="lazy" />
       ) : (

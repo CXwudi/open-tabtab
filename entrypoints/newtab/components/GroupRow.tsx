@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Group, SavedTab } from '@/src/domain/types';
+import { encodeGroupId, encodeTabId, type DndDragData } from '../dnd/dnd-config';
 import { useDispatch } from '../hooks/useSnapshot';
 import InlineEditable from './common/InlineEditable';
 import ConfirmDialog from './common/ConfirmDialog';
@@ -11,6 +14,8 @@ type GroupRowProps = {
   group: Group;
   /** Tabs to render — may be a search-filtered subset of `group.tabs`. */
   tabs: SavedTab[];
+  groupOrder: string[];
+  groupTabOrders: Record<string, string[]>;
 };
 
 type FormState = { mode: 'add' } | { mode: 'edit'; tab: SavedTab } | null;
@@ -20,7 +25,7 @@ type FormState = { mode: 'add' } | { mode: 'edit'; tab: SavedTab } | null;
  * hover actions (open / open-as-group — wired in Task 9), a `...` menu
  * (rename/delete), an "add tab" affordance, and the grid of saved-tab cards.
  */
-export default function GroupRow({ spaceId, group, tabs }: GroupRowProps) {
+export default function GroupRow({ spaceId, group, tabs, groupOrder, groupTabOrders }: GroupRowProps) {
   const dispatch = useDispatch();
   const [collapsed, setCollapsed] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -28,6 +33,16 @@ export default function GroupRow({ spaceId, group, tabs }: GroupRowProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [form, setForm] = useState<FormState>(null);
   const [pendingDeleteTab, setPendingDeleteTab] = useState<SavedTab | null>(null);
+  const sortable = useSortable({
+    id: encodeGroupId(spaceId, group.id),
+    data: { kind: 'group', spaceId, orderedIds: groupOrder } satisfies DndDragData,
+  });
+  const style = {
+    transform: CSS.Transform.toString(sortable.transform),
+    transition: sortable.transition,
+  };
+  const sortableTabIds = tabs.map((tab) => encodeTabId(spaceId, group.id, tab.id));
+  const orderedTabIds = group.tabs.map((tab) => tab.id);
 
   function submitForm(values: { title: string; url: string }) {
     if (form?.mode === 'edit') {
@@ -39,9 +54,21 @@ export default function GroupRow({ spaceId, group, tabs }: GroupRowProps) {
   }
 
   return (
-    <section className="group-row">
+    <section
+      ref={sortable.setNodeRef}
+      style={style}
+      className={`group-row ${sortable.isDragging ? 'group-row--dragging' : ''}`}
+    >
       <header className="group-header">
-        <span className="drag-handle" aria-hidden="true">⋮⋮</span>
+        <button
+          type="button"
+          className="drag-handle drag-handle--button"
+          aria-label={`Reorder ${group.name}`}
+          {...sortable.attributes}
+          {...sortable.listeners}
+        >
+          ⋮⋮
+        </button>
         <button
           type="button"
           className="icon-btn chevron"
@@ -119,16 +146,22 @@ export default function GroupRow({ spaceId, group, tabs }: GroupRowProps) {
               onCancel={() => setForm(null)}
             />
           ) : null}
-          <div className="tab-grid">
-            {tabs.map((tab) => (
-              <SavedTabCard
-                key={tab.id}
-                tab={tab}
-                onEdit={() => setForm({ mode: 'edit', tab })}
-                onDelete={() => setPendingDeleteTab(tab)}
-              />
-            ))}
-          </div>
+          <SortableContext items={sortableTabIds} strategy={rectSortingStrategy}>
+            <div className="tab-grid">
+              {tabs.map((tab) => (
+                <SavedTabCard
+                  key={tab.id}
+                  spaceId={spaceId}
+                  groupId={group.id}
+                  tab={tab}
+                  orderedIds={orderedTabIds}
+                  groupTabOrders={groupTabOrders}
+                  onEdit={() => setForm({ mode: 'edit', tab })}
+                  onDelete={() => setPendingDeleteTab(tab)}
+                />
+              ))}
+            </div>
+          </SortableContext>
         </div>
       )}
 

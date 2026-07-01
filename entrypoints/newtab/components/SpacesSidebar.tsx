@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { Space, Workspace } from '@/src/domain/types';
+import { encodeSpaceId } from '../dnd/dnd-config';
 import { useDispatch } from '../hooks/useSnapshot';
 import SpaceItem from './SpaceItem';
 import ConfirmDialog from './common/ConfirmDialog';
@@ -26,6 +28,7 @@ export default function SpacesSidebar({
   const spaces = workspace.spaceOrder
     .map((id) => workspace.spaces[id])
     .filter((space): space is Space => Boolean(space));
+  const sortableIds = spaces.map((space) => encodeSpaceId(space.id));
 
   return (
     <aside className="spaces-sidebar">
@@ -46,18 +49,21 @@ export default function SpacesSidebar({
         </button>
       </div>
 
-      <div className="space-list">
-        {spaces.map((space) => (
-          <SpaceItem
-            key={space.id}
-            space={space}
-            selected={space.id === selectedSpaceId}
-            onSelect={() => onSelectSpace(space.id)}
-            onRename={(name) => dispatch({ type: 'renameSpace', spaceId: space.id, name })}
-            onRequestDelete={() => setPendingDelete(space)}
-          />
-        ))}
-      </div>
+      <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+        <div className="space-list">
+          {spaces.map((space) => (
+            <SpaceItem
+              key={space.id}
+              space={space}
+              orderedIds={workspace.spaceOrder}
+              selected={space.id === selectedSpaceId}
+              onSelect={() => onSelectSpace(space.id)}
+              onRename={(name) => dispatch({ type: 'renameSpace', spaceId: space.id, name })}
+              onRequestDelete={() => setPendingDelete(space)}
+            />
+          ))}
+        </div>
+      </SortableContext>
 
       <div className="sidebar-footer">
         <button type="button" className="text-btn" title="Settings (Task 10)">⚙ Settings</button>

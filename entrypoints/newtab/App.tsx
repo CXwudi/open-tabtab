@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { DndContext, type DragEndEvent } from '@dnd-kit/core';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RuntimeCommandBus } from '@/src/messaging/runtime-bus';
-import { CommandBusProvider, useSnapshot } from './hooks/useSnapshot';
+import { CommandBusProvider, useDispatch, useSnapshot } from './hooks/useSnapshot';
 import { useSelectedSpace } from './hooks/useSelectedSpace';
+import { appCollisionDetection, useDndSensors } from './dnd/dnd-config';
+import { mapDragEndToCommand } from './dnd/on-drag-end';
 import SpacesSidebar from './components/SpacesSidebar';
 import WorkspaceView from './components/WorkspaceView';
 import CurrentTabsSidebar, { type BrowserTabView } from './components/CurrentTabsSidebar';
@@ -22,9 +25,19 @@ const MOCK_TABS: BrowserTabView[] = [
 /** The three-column workspace, rendered once a snapshot is available. */
 function NewTabWorkspace() {
   const { snapshot } = useSnapshot();
+  const dispatch = useDispatch();
+  const sensors = useDndSensors();
   const workspace = snapshot?.workspace ?? null;
   const { selectedSpaceId, selectSpace } = useSelectedSpace(workspace);
   const [showTabs, setShowTabs] = useState(true);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const command = mapDragEndToCommand(
+      { id: String(event.active.id), data: event.active.data },
+      event.over ? { id: String(event.over.id) } : null,
+    );
+    if (command) void dispatch(command);
+  }, [dispatch]);
 
   if (!workspace) {
     return <div className="app-loading">Loading workspace…</div>;
@@ -33,21 +46,23 @@ function NewTabWorkspace() {
   const selectedSpace = selectedSpaceId ? workspace.spaces[selectedSpaceId] : undefined;
 
   return (
-    <div className={`app-grid ${showTabs ? '' : 'app-grid--no-tabs'}`}>
-      <SpacesSidebar
-        workspace={workspace}
-        selectedSpaceId={selectedSpaceId}
-        onSelectSpace={selectSpace}
-      />
-      <main className="workspace-col">
-        {selectedSpace ? (
-          <WorkspaceView space={selectedSpace} onToggleTabs={() => setShowTabs((value) => !value)} />
-        ) : (
-          <div className="empty-state">Select or create a space to get started.</div>
-        )}
-      </main>
-      {showTabs ? <CurrentTabsSidebar tabs={MOCK_TABS} /> : null}
-    </div>
+    <DndContext sensors={sensors} collisionDetection={appCollisionDetection} onDragEnd={handleDragEnd}>
+      <div className={`app-grid ${showTabs ? '' : 'app-grid--no-tabs'}`}>
+        <SpacesSidebar
+          workspace={workspace}
+          selectedSpaceId={selectedSpaceId}
+          onSelectSpace={selectSpace}
+        />
+        <main className="workspace-col">
+          {selectedSpace ? (
+            <WorkspaceView space={selectedSpace} onToggleTabs={() => setShowTabs((value) => !value)} />
+          ) : (
+            <div className="empty-state">Select or create a space to get started.</div>
+          )}
+        </main>
+        {showTabs ? <CurrentTabsSidebar tabs={MOCK_TABS} /> : null}
+      </div>
+    </DndContext>
   );
 }
 

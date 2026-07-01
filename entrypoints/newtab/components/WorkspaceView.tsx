@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { Space } from '@/src/domain/types';
+import { encodeGroupId, groupTabOrderKey } from '../dnd/dnd-config';
 import { useDispatch } from '../hooks/useSnapshot';
 import InlineEditable from './common/InlineEditable';
 import GroupToolbar from './GroupToolbar';
@@ -38,6 +40,14 @@ export default function WorkspaceView({ space, onToggleTabs }: WorkspaceViewProp
       tabs: group.tabs.filter((tab) => matchesSearch(tab.title, tab.url, search)),
     }))
     .filter((entry) => !searching || entry.tabs.length > 0);
+  const groupOrder = space.groups.map((group) => group.id);
+  const groupTabOrders = Object.fromEntries(
+    space.groups.map((group) => [
+      groupTabOrderKey(space.id, group.id),
+      group.tabs.map((tab) => tab.id),
+    ]),
+  );
+  const sortableGroupIds = space.groups.map((group) => encodeGroupId(space.id, group.id));
 
   return (
     <div className="workspace-view">
@@ -67,14 +77,23 @@ export default function WorkspaceView({ space, onToggleTabs }: WorkspaceViewProp
           </button>
         </div>
       ) : (
-        <div className="group-list">
-          {groups.map(({ group, tabs }) => (
-            <GroupRow key={group.id} spaceId={space.id} group={group} tabs={tabs} />
-          ))}
-          {searching && groups.length === 0 ? (
-            <p className="empty-state">No tabs match “{search}”.</p>
-          ) : null}
-        </div>
+        <SortableContext items={sortableGroupIds} strategy={verticalListSortingStrategy}>
+          <div className="group-list">
+            {groups.map(({ group, tabs }) => (
+              <GroupRow
+                key={group.id}
+                spaceId={space.id}
+                group={group}
+                tabs={tabs}
+                groupOrder={groupOrder}
+                groupTabOrders={groupTabOrders}
+              />
+            ))}
+            {searching && groups.length === 0 ? (
+              <p className="empty-state">No tabs match “{search}”.</p>
+            ) : null}
+          </div>
+        </SortableContext>
       )}
     </div>
   );

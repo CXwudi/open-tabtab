@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Space } from '@/src/domain/types';
+import { encodeSpaceId, type DndDragData } from '../dnd/dnd-config';
 import InlineEditable from './common/InlineEditable';
 
 type SpaceItemProps = {
   space: Space;
+  orderedIds: string[];
   selected: boolean;
   onSelect: () => void;
   onRename: (name: string) => void;
@@ -17,6 +21,7 @@ type SpaceItemProps = {
  */
 export default function SpaceItem({
   space,
+  orderedIds,
   selected,
   onSelect,
   onRename,
@@ -24,10 +29,24 @@ export default function SpaceItem({
 }: SpaceItemProps) {
   const [renaming, setRenaming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const sortable = useSortable({
+    id: encodeSpaceId(space.id),
+    data: { kind: 'space', orderedIds } satisfies DndDragData,
+  });
+  const style = {
+    transform: CSS.Transform.toString(sortable.transform),
+    transition: sortable.transition,
+  };
 
   return (
     <div
-      className={`space-item ${selected ? 'space-item--selected' : ''}`}
+      ref={sortable.setNodeRef}
+      style={style}
+      className={[
+        'space-item',
+        selected ? 'space-item--selected' : '',
+        sortable.isDragging ? 'space-item--dragging' : '',
+      ].filter(Boolean).join(' ')}
       role="button"
       tabIndex={0}
       onClick={onSelect}
@@ -38,7 +57,16 @@ export default function SpaceItem({
         }
       }}
     >
-      <span className="drag-handle" aria-hidden="true">⋮⋮</span>
+      <button
+        type="button"
+        className="drag-handle drag-handle--button"
+        aria-label={`Reorder ${space.name}`}
+        onClick={(event) => event.stopPropagation()}
+        {...sortable.attributes}
+        {...sortable.listeners}
+      >
+        ⋮⋮
+      </button>
       <span className="space-icon" aria-hidden="true">▢</span>
       <InlineEditable
         className="space-name"
