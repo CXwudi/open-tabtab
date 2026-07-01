@@ -1,20 +1,15 @@
 import { messaging } from '../src/messaging/messaging';
-import { handleCommand, type SyncEngine } from '../src/background/handler';
+import { handleCommand } from '../src/background/handler';
+import { SyncEngine } from '../src/background/sync-engine';
 import { StorageRepository } from '../src/storage/repository';
-
-const syncEngine: SyncEngine = {
-  enqueuePush: () => undefined,
-  reconcile: () => undefined,
-  setSettings: () => undefined,
-  testConnection: () => undefined,
-  createGist: () => undefined,
-  pull: () => undefined,
-  push: () => undefined,
-  resolveConflict: () => undefined,
-};
+import { GistClient } from '../src/sync/gist-client';
 
 export default defineBackground(() => {
   const repository = new StorageRepository();
+  const syncEngine = new SyncEngine({
+    repository,
+    gistClient: new GistClient(),
+  });
 
   messaging.onMessage('dispatchCommand', ({ data }) => handleCommand(data, {
     repository,
