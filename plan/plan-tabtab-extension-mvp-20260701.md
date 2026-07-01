@@ -308,8 +308,8 @@ Provide the persistence abstraction over extension storage, a GitHub Gist REST c
 
 Task 0 (keys, types, sync-state, settings).
 
-- [ ] **Step 1:** `StorageRepository` wraps WXT `storage` (`storage.getItem/setItem` with `STORAGE_KEYS`). Methods: `getWorkspace()/setWorkspace()`, `getSyncState()/setSyncState()`, `getSettings()/setSettings()`, each with sane defaults (`getSettings` defaults `{enabled:false, filename:'open-tabtab-backup.json'}`; `getSyncState` defaults `{status:'idle'}`).
-- [ ] **Step 2:** `GistClient` with injected `fetch`. Methods (note **`getGist` takes the configured `filename`** — Codex #2):
+- [x] **Step 1:** `StorageRepository` wraps WXT `storage` (`storage.getItem/setItem` with `STORAGE_KEYS`). Methods: `getWorkspace()/setWorkspace()`, `getSyncState()/setSyncState()`, `getSettings()/setSettings()`, each with sane defaults (`getSettings` defaults `{enabled:false, filename:'open-tabtab-backup.json'}`; `getSyncState` defaults `{status:'idle'}`).
+- [x] **Step 2:** `GistClient` with injected `fetch`. Methods (note **`getGist` takes the configured `filename`** — Codex #2):
   - `validateToken(token)` → `GET /gists`, `200 ⇒ ok`.
   - `getGist(gistId, token, filename): Promise<RemoteBackupResult>` — reads `files[filename]`; if `truncated:true`, fetch `raw_url` (only then is the `gist.githubusercontent.com` host permission needed), then `parseBackup` the content. Return a **typed result** (Codex #3), never throw for expected states:
 
@@ -324,8 +324,8 @@ Task 0 (keys, types, sync-state, settings).
   - `createGist(token, {filename, content, description, public:false})` → `gistId`.
   - `updateGist(gistId, token, filename, content)` → `PATCH`, creates the file if absent.
   - Send `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`. Never log the token.
-- [ ] **Step 3:** `decideReconcile({ syncState, remote }): 'noop'|'pushLocal'|'replaceLocal'|'conflict'` consuming **only `found | missing`** (the caller handles `invalid` → sync `error` before calling; Task 6). `localDirty = pendingVersion != null`; for `missing`, treat as remote-absent (`remoteMoved` false, nothing to replace); for `found`, `remoteMoved = remoteVersion !== lastSyncedVersion`. Table: dirty+moved⇒`conflict`; only-local (dirty, not moved) OR (dirty + missing)⇒`pushLocal`; only-remote (moved, not dirty)⇒`replaceLocal`; neither⇒`noop`.
-- [ ] **Step 4:** Write tests (below).
+- [x] **Step 3:** `decideReconcile({ syncState, remote }): 'noop'|'pushLocal'|'replaceLocal'|'conflict'` consuming **only `found | missing`** (the caller handles `invalid` → sync `error` before calling; Task 6). `localDirty = pendingVersion != null`; for `missing`, treat as remote-absent (`remoteMoved` false, nothing to replace); for `found`, `remoteMoved = remoteVersion !== lastSyncedVersion`. Table: dirty+moved⇒`conflict`; only-local (dirty, not moved) OR (dirty + missing)⇒`pushLocal`; only-remote (moved, not dirty)⇒`replaceLocal`; neither⇒`noop`.
+- [x] **Step 4:** Write tests (below).
 
 #### 2.4 Verification
 
