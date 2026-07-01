@@ -11,6 +11,7 @@ import { mapDragEndToCommand } from './dnd/on-drag-end';
 import SpacesSidebar from './components/SpacesSidebar';
 import WorkspaceView from './components/WorkspaceView';
 import CurrentTabsSidebar from './components/CurrentTabsSidebar';
+import SettingsPanel from './components/settings/SettingsPanel';
 import './styles/theme.css';
 import './styles/layout.css';
 import './styles/components.css';
@@ -26,6 +27,7 @@ function NewTabWorkspace() {
   const { selectedSpaceId, selectSpace } = useSelectedSpace(workspace);
   const [selfTabId, setSelfTabId] = useState<number | undefined>();
   const [showTabs, setShowTabs] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     void getSelfTabId().then(setSelfTabId).catch(() => undefined);
@@ -57,7 +59,7 @@ function NewTabWorkspace() {
     }
   }, [dispatch, liveTabs, selectedSpaceId, selfTabId]);
 
-  if (!workspace) {
+  if (!snapshot || !workspace) {
     return <div className="app-loading">Loading workspace…</div>;
   }
 
@@ -70,6 +72,7 @@ function NewTabWorkspace() {
           workspace={workspace}
           selectedSpaceId={selectedSpaceId}
           onSelectSpace={selectSpace}
+          onOpenSettings={() => setSettingsOpen(true)}
         />
         <main className="workspace-col">
           {selectedSpace ? (
@@ -80,6 +83,7 @@ function NewTabWorkspace() {
         </main>
         {showTabs ? <CurrentTabsSidebar tabs={liveTabs} onSaveAll={selectedSpaceId ? handleStashAll : undefined} /> : null}
       </div>
+      {settingsOpen ? <SettingsPanel snapshot={snapshot} onClose={() => setSettingsOpen(false)} /> : null}
     </DndContext>
   );
 }

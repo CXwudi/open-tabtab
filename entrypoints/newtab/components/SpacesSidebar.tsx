@@ -10,6 +10,7 @@ type SpacesSidebarProps = {
   workspace: Workspace;
   selectedSpaceId: string | null;
   onSelectSpace: (id: string) => void;
+  onOpenSettings: () => void;
 };
 
 /**
@@ -21,6 +22,7 @@ export default function SpacesSidebar({
   workspace,
   selectedSpaceId,
   onSelectSpace,
+  onOpenSettings,
 }: SpacesSidebarProps) {
   const dispatch = useDispatch();
   const [pendingDelete, setPendingDelete] = useState<Space | null>(null);
@@ -66,7 +68,7 @@ export default function SpacesSidebar({
       </SortableContext>
 
       <div className="sidebar-footer">
-        <button type="button" className="text-btn" title="Settings (Task 10)">⚙ Settings</button>
+        <button type="button" className="text-btn" onClick={onOpenSettings}>⚙ Settings</button>
       </div>
 
       <ConfirmDialog

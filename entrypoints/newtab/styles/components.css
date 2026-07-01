@@ -54,6 +54,9 @@
 .text-btn:hover {
   color: var(--text);
 }
+.text-btn.danger {
+  color: var(--danger);
+}
 
 .text-input {
   width: 100%;
@@ -173,6 +176,107 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+/* Settings
+   ------------------------------------------------------------------ */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgba(20, 24, 33, 0.45);
+}
+.settings-panel {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-panel);
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.28);
+}
+.settings-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.settings-header h2,
+.settings-section h3,
+.conflict-banner h3 {
+  margin: 0;
+}
+.settings-header p,
+.settings-section p,
+.conflict-banner p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+.settings-section,
+.conflict-banner {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.conflict-banner {
+  background: var(--bg-selected);
+}
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+.status-grid dt {
+  color: var(--text-faint);
+  font-size: 11px;
+}
+.status-grid dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+.field-row,
+.field-stack {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.field-row {
+  align-items: center;
+  justify-content: space-between;
+}
+.field-stack {
+  flex-direction: column;
+}
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.settings-hint {
+  color: var(--text-faint);
+  font-size: 12px;
+}
+.settings-error {
+  color: var(--danger);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 /* Left sidebar

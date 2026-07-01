@@ -600,11 +600,11 @@ Give the user manual control of PAT/Gist config and recovery, and surface sync s
 
 Task 2 + Task 6 (sync engine behind commands), Task 7 (dispatch).
 
-- [ ] **Step 1:** `GistConfigForm`: PAT input (masked, never rendered back from storage — show `hasToken`; a separate "Clear token" control sends `{clearToken:true}`), enable toggle, filename (default `open-tabtab-backup.json`), "Paste existing Gist ID" **or** "Create new private Gist" (`createGist`), "Test connection" (`testConnection`). Persist via `setGistSettings` sending a **`GistSettingsPatch`** — changing `enabled`/`gistId`/`filename` omits `token`, so the stored PAT is preserved (Codex #9); only typing a new PAT sends `token`.
-- [ ] **Step 2:** `SyncStatusBar`: show current local version, last synced version, status, last error (from snapshot). Buttons: "Pull Gist to local" (`pullNow`), "Push local to Gist" (`pushNow`).
-- [ ] **Step 3:** `BackupImportExport`: "Export local backup" (`serializeBackup(workspace)` → download the internal-shape JSON), "Import backup file" (read file → `importBackup`; the background `parseBackup` accepts **both** TabTab-shaped and Open-TabTab-shaped files, replaces the whole workspace, bumps version, enqueues push if enabled; **no merge**).
-- [ ] **Step 4:** `ConflictBanner` (shown when `syncState.status==='conflict'`): actions "Replace remote with local" (`resolveConflict:useLocal`), "Replace local with remote" (`resolveConflict:useRemote`), plus export/import escape hatches. Explain the divergence in copy.
-- [ ] **Step 5:** Ensure the token is never displayed or logged; the UI reads `PublicGistSettings.hasToken` only.
+- [x] **Step 1:** `GistConfigForm`: PAT input (masked, never rendered back from storage — show `hasToken`; a separate "Clear token" control sends `{clearToken:true}`), enable toggle, filename (default `open-tabtab-backup.json`), "Paste existing Gist ID" **or** "Create new private Gist" (`createGist`), "Test connection" (`testConnection`). Persist via `setGistSettings` sending a **`GistSettingsPatch`** — changing `enabled`/`gistId`/`filename` omits `token`, so the stored PAT is preserved (Codex #9); only typing a new PAT sends `token`.
+- [x] **Step 2:** `SyncStatusBar`: show current local version, last synced version, status, last error (from snapshot). Buttons: "Pull Gist to local" (`pullNow`), "Push local to Gist" (`pushNow`).
+- [x] **Step 3:** `BackupImportExport`: "Export local backup" (`serializeBackup(workspace)` → download the internal-shape JSON), "Import backup file" (read file → `importBackup`; the background `parseBackup` accepts **both** TabTab-shaped and Open-TabTab-shaped files, replaces the whole workspace, bumps version, enqueues push if enabled; **no merge**).
+- [x] **Step 4:** `ConflictBanner` (shown when `syncState.status==='conflict'`): actions "Replace remote with local" (`resolveConflict:useLocal`), "Replace local with remote" (`resolveConflict:useRemote`), plus export/import escape hatches. Explain the divergence in copy.
+- [x] **Step 5:** Ensure the token is never displayed or logged; the UI reads `PublicGistSettings.hasToken` only.
 
 #### 10.4 Verification
 

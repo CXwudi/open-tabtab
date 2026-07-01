@@ -25,7 +25,12 @@ function renderSidebar(dispatch = vi.fn(async () => ({ ok: true }))) {
   const bus = makeBus(dispatch);
   render(
     <CommandBusProvider bus={bus}>
-      <SpacesSidebar workspace={workspace} selectedSpaceId="s1" onSelectSpace={() => {}} />
+      <SpacesSidebar
+        workspace={workspace}
+        selectedSpaceId="s1"
+        onSelectSpace={() => {}}
+        onOpenSettings={() => {}}
+      />
     </CommandBusProvider>,
   );
   return dispatch;
