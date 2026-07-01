@@ -1,0 +1,230 @@
+/* Center workspace
+   ------------------------------------------------------------------ */
+.workspace-view {
+  padding: var(--space-4);
+}
+.workspace-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg-app);
+  padding-bottom: var(--space-3);
+  z-index: 5;
+}
+.workspace-title {
+  margin: 0 0 var(--space-3);
+  font-size: 20px;
+}
+.group-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.search-input {
+  max-width: 260px;
+}
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.group-row {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.group-header:hover .drag-handle {
+  opacity: 1;
+}
+.group-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.group-count {
+  color: var(--text-faint);
+  font-size: 12px;
+}
+.group-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+}
+.group-header:hover .group-actions {
+  opacity: 1;
+}
+.group-body {
+  margin-top: var(--space-3);
+}
+
+.tab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--space-2);
+}
+.tab-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  min-width: 0;
+}
+.tab-card:hover {
+  background: var(--bg-hover);
+}
+.tab-card-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.tab-card-icon--fallback,
+.current-tab-icon--fallback {
+  background: var(--border-strong);
+}
+.tab-card-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tab-card-menu-btn {
+  opacity: 0;
+}
+.tab-card:hover .tab-card-menu-btn {
+  opacity: 1;
+}
+
+/* Saved-tab form
+   ------------------------------------------------------------------ */
+.saved-tab-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-app);
+}
+.saved-tab-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* Right sidebar
+   ------------------------------------------------------------------ */
+.current-tabs-actions {
+  display: flex;
+  gap: 2px;
+}
+.current-tab-list {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.current-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.current-tab:hover {
+  background: var(--bg-hover);
+}
+.current-tab:hover .drag-handle {
+  opacity: 1;
+}
+.current-tab-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.current-tab-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.current-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.current-tab-url {
+  color: var(--text-faint);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Empty states
+   ------------------------------------------------------------------ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  color: var(--text-muted);
+}
+.empty-hint {
+  color: var(--text-faint);
+  padding: var(--space-2);
+}
+
+@media (max-width: 760px) {
+  .workspace-view {
+    padding: var(--space-3);
+  }
+
+  .workspace-header {
+    position: static;
+  }
+
+  .group-toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .search-input {
+    max-width: none;
+    flex: 1 1 180px;
+  }
+
+  .group-toolbar .btn-primary {
+    flex: 1 1 150px;
+  }
+
+  .group-header {
+    flex-wrap: wrap;
+  }
+
+  .group-actions,
+  .tab-card-menu-btn,
+  .drag-handle {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .tab-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

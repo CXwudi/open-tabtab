@@ -1,0 +1,78 @@
+import { useState } from 'react';
+import type { Space, Workspace } from '@/src/domain/types';
+import { useDispatch } from '../hooks/useSnapshot';
+import SpaceItem from './SpaceItem';
+import ConfirmDialog from './common/ConfirmDialog';
+
+type SpacesSidebarProps = {
+  workspace: Workspace;
+  selectedSpaceId: string | null;
+  onSelectSpace: (id: string) => void;
+};
+
+/**
+ * Left sidebar listing spaces in `spaceOrder`. Creating adds a default-named
+ * space (renamed inline afterwards); rename/delete are dispatched here, with
+ * delete gated behind a {@link ConfirmDialog}.
+ */
+export default function SpacesSidebar({
+  workspace,
+  selectedSpaceId,
+  onSelectSpace,
+}: SpacesSidebarProps) {
+  const dispatch = useDispatch();
+  const [pendingDelete, setPendingDelete] = useState<Space | null>(null);
+
+  const spaces = workspace.spaceOrder
+    .map((id) => workspace.spaces[id])
+    .filter((space): space is Space => Boolean(space));
+
+  return (
+    <aside className="spaces-sidebar">
+      <div className="sidebar-brand">
+        <span className="brand-title">Open TabTab</span>
+        <button type="button" className="icon-btn" title="Collapse sidebar">«</button>
+      </div>
+
+      <div className="sidebar-section-header">
+        <span>Spaces</span>
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label="Add space"
+          onClick={() => dispatch({ type: 'createSpace', name: 'New Space' })}
+        >
+          +
+        </button>
+      </div>
+
+      <div className="space-list">
+        {spaces.map((space) => (
+          <SpaceItem
+            key={space.id}
+            space={space}
+            selected={space.id === selectedSpaceId}
+            onSelect={() => onSelectSpace(space.id)}
+            onRename={(name) => dispatch({ type: 'renameSpace', spaceId: space.id, name })}
+            onRequestDelete={() => setPendingDelete(space)}
+          />
+        ))}
+      </div>
+
+      <div className="sidebar-footer">
+        <button type="button" className="text-btn" title="Settings (Task 10)">⚙ Settings</button>
+      </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={`Delete "${pendingDelete?.name ?? ''}"?`}
+        message="This removes the space and all of its collections."
+        onConfirm={() => {
+          if (pendingDelete) dispatch({ type: 'deleteSpace', spaceId: pendingDelete.id });
+          setPendingDelete(null);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </aside>
+  );
+}

@@ -1,0 +1,54 @@
+/* Single default theme: colors, spacing, and base element resets. */
+:root {
+  --bg-app: #f4f5f7;
+  --bg-panel: #ffffff;
+  --bg-sidebar: #fbfbfd;
+  --bg-hover: #eef0f4;
+  --bg-selected: #e7edfb;
+  --border: #e3e5ea;
+  --border-strong: #d3d6dd;
+  --text: #1f2430;
+  --text-muted: #6b7280;
+  --text-faint: #9aa1ad;
+  --accent: #3b6ef5;
+  --accent-hover: #2f5ad6;
+  --danger: #d9432f;
+  --danger-hover: #b8331f;
+
+  --radius: 8px;
+  --radius-sm: 5px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg-app);
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+}
