@@ -356,11 +356,11 @@ Thin, UI-agnostic wrappers over `chrome.tabs` / `chrome.tabGroups` / `chrome.tab
 
 Task 0 (types).
 
-- [ ] **Step 1:** `queryCurrentWindowTabs()` → `chrome.tabs.query({currentWindow:true})` mapped to `{ id, title, url, favIconUrl, pinned }[]`. `getSelfTabId()` resolves the extension's own new-tab id so it can be excluded from stash-close. **Caution:** with a `chrome_url_overrides.newtab` override, the workspace tab may report its URL as either the extension page URL (`chrome.runtime.getURL('newtab.html')`) **or** `chrome://newtab/` depending on how it was opened — match against **both** forms (and consider falling back to the tab that dispatched the stash, e.g. via `chrome.tabs.getCurrent()` in the page context). Verify in Brave during Phase 3.
-- [ ] **Step 2:** `openTab(url, {active})`, `openTabs(urls)` → `chrome.tabs.create`. `closeTabs(ids)` → `chrome.tabs.remove`.
-- [ ] **Step 3:** `openAsTabGroup(name, urls, color?)`: create tabs for each url (collect ids), `chrome.tabs.group({ tabIds })`, then `chrome.tabGroups.update(groupId, { title: name, color: color ?? 'blue' })`. Use a single fixed default color for MVP.
-- [ ] **Step 4:** `subscribeToTabChanges(cb)` registers the relevant `chrome.tabs` listeners and returns an unsubscribe. Debounce re-query so rapid events coalesce.
-- [ ] **Step 5:** Tests where `fakeBrowser` supports the API (tabs query/create/remove); document any API (`tabGroups`) that `fakeBrowser` cannot fake and defer to Phase 3 manual checks.
+- [x] **Step 1:** `queryCurrentWindowTabs()` → `chrome.tabs.query({currentWindow:true})` mapped to `{ id, title, url, favIconUrl, pinned }[]`. `getSelfTabId()` resolves the extension's own new-tab id so it can be excluded from stash-close. **Caution:** with a `chrome_url_overrides.newtab` override, the workspace tab may report its URL as either the extension page URL (`chrome.runtime.getURL('newtab.html')`) **or** `chrome://newtab/` depending on how it was opened — match against **both** forms (and consider falling back to the tab that dispatched the stash, e.g. via `chrome.tabs.getCurrent()` in the page context). Verify in Brave during Phase 3.
+- [x] **Step 2:** `openTab(url, {active})`, `openTabs(urls)` → `chrome.tabs.create`. `closeTabs(ids)` → `chrome.tabs.remove`.
+- [x] **Step 3:** `openAsTabGroup(name, urls, color?)`: create tabs for each url (collect ids), `chrome.tabs.group({ tabIds })`, then `chrome.tabGroups.update(groupId, { title: name, color: color ?? 'blue' })`. Use a single fixed default color for MVP.
+- [x] **Step 4:** `subscribeToTabChanges(cb)` registers the relevant `chrome.tabs` listeners and returns an unsubscribe. Debounce re-query so rapid events coalesce.
+- [x] **Step 5:** Tests where `fakeBrowser` supports the API (tabs query/create/remove); document any API (`tabGroups`) that `fakeBrowser` cannot fake and defer to Phase 3 manual checks.
 
 #### 3.4 Verification
 
