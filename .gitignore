@@ -1,2 +1,13 @@
-# Reference material only — not part of the app build
+# Reference material only - not part of the app build
 raw/
+
+# Dependencies
+node_modules/
+
+# WXT build output
+.output/
+.wxt/
+
+# Local environment
+.env
+.env.*

@@ -11,6 +11,7 @@
 **Approach:** Establish a shared **contract layer** (domain types, message protocol, storage keys, and a `CommandBus` interface) in Phase 0 so the remaining work fans out to 4 independent tracks (Domain, Storage+Sync, Browser, UI). Pure logic (domain mutations, backup adapter, sync reconciliation) is isolated from `chrome.*` so it is unit-testable without a browser. The UI is built against an in-memory `CommandBus` so it runs and is verifiable before the background worker exists. Phase 2 integrates the tracks through the MV3 background service worker (the sole workspace-mutation owner + sync-queue owner). Phase 3 is manual Brave validation.
 
 **Verification:** Three levels, matching the spec's "Validation Considerations":
+
 1. **Automated** — `pnpm test` (Vitest) for domain, backup adapter, sync reconciliation, storage repo, and browser wrappers; `pnpm typecheck` and `pnpm build` must pass.
 2. **Standalone UI** — `pnpm dev` loads the new-tab page driven by an in-memory bus + seeded sample backup.
 3. **Manual Brave E2E** — the spec's browser checklist (§ Phase 3 below).
@@ -152,6 +153,7 @@ export interface CommandBus {
 ```
 
 **Messaging & state-observation transport (resolved — Codex #6/#7):**
+
 - **Commands** travel over [`@webext-core/messaging`](https://webext-core.aklinker1.io/messaging/) typed request/response, defined once in `src/messaging/messaging.ts` via `defineExtensionMessaging<{ dispatchCommand(cmd: Command): CommandResult }>()`. This handles the async-response lifecycle correctly, so we avoid raw `chrome.runtime.onMessage` + `return true` footguns and need no message "envelope" (commands are the only message kind).
 - **State observation** is storage-driven, not message-driven: the background persists workspace/syncState/settings; each new-tab page reacts with WXT `storage.watch(...)` and re-reads the snapshot. This is what makes multiple open new-tab pages stay consistent, and it removes any `command`-vs-`snapshot` ambiguity by construction.
 
@@ -165,6 +167,7 @@ export const STORAGE_KEYS = {
 ```
 
 **Contract invariants (hold these constant across tracks):**
+
 - `dispatch` never throws for expected failures; it returns `{ ok:false, error }` and (when possible) the unchanged snapshot.
 - Bootstrap (`Default` space creation on first run) sets a `version` but leaves `SyncState` **clean** (`status:'idle'`, no `pendingVersion`). Bootstrap is not a user mutation, so a freshly configured existing remote reconciles as "remote changed, local clean → replace local with remote" rather than a conflict. See Task 6 note.
 - `PublicGistSettings.hasToken` is what the UI reads; the raw `token` never crosses back to the UI and is never logged.
@@ -213,9 +216,11 @@ Phase 3         Task 11 Manual Brave E2E validation  (needs all)
 ### Task 0: Project bootstrap + shared contracts
 
 #### 0.1 Intent
+
 Stand up the WXT + React + TS project, wire Vitest with WXT's fake browser, and land every §0 contract file as compiling source so all four Phase-1 tracks can import stable types. No feature logic yet — stubs that typecheck.
 
 #### 0.2 Files
+
 - Create: `package.json`, `wxt.config.ts`, `tsconfig.json`, `vitest.config.ts`, `.gitignore`
 - Create: `entrypoints/background.ts` (stub: registers a no-op message listener), `entrypoints/newtab/index.html`, `entrypoints/newtab/main.tsx`, `entrypoints/newtab/App.tsx` ("Hello Open TabTab")
 - Create contracts: `src/domain/types.ts`, `src/messaging/protocol.ts`, `src/messaging/messaging.ts` (the `@webext-core/messaging` `defineExtensionMessaging<{ dispatchCommand(cmd: Command): CommandResult }>()` definition), `src/storage/keys.ts`, `src/storage/sync-state.ts`, `src/storage/settings.ts`
@@ -223,22 +228,25 @@ Stand up the WXT + React + TS project, wire Vitest with WXT's fake browser, and 
 - Create fixture: `src/testing/sample-backup.ts` (imports/embeds the captured backup for tests + UI seeding)
 
 #### 0.3 Dependencies
+
 None. This blocks all other tasks.
 
-- [ ] **Step 1:** `pnpm dlx wxt@latest init open-tabtab --template react` (TypeScript is the default; there is no `react-ts` template) into a temp dir, then move its config into the repo root (or run init at root). Keep `raw/`, `spec/`, `plan/`, `AGENTS.md` untouched; they are reference-only and outside the WXT build. Confirm `entrypoints/` + `wxt.config.ts` live at repo root.
-- [ ] **Step 2:** Add deps: `pnpm add react react-dom @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @webext-core/messaging`; dev deps: `pnpm add -D wxt @wxt-dev/module-react typescript vitest @testing-library/react @testing-library/user-event jsdom`.
-- [ ] **Step 3:** In `wxt.config.ts` set `manifest.permissions = ['storage','tabs','tabGroups']`, `manifest.host_permissions = ['https://api.github.com/*']` (add `https://gist.githubusercontent.com/*` only if Task 2 needs raw-content fallback), and configure the `newtab` entrypoint to override the new-tab page. Set `modules: ['@wxt-dev/module-react']`.
-- [ ] **Step 4:** Create `vitest.config.ts` importing `WxtVitest` from **`wxt/testing/vitest-plugin`** (`plugins: [WxtVitest()]`); it polyfills `browser` via `@webext-core/fake-browser` and sets up module resolution. Set `environment: 'jsdom'`. In tests, import `fakeBrowser` from **`wxt/testing/fake-browser`** and `fakeBrowser.reset()` in `beforeEach`.
-- [ ] **Step 5:** Author all §0 contract files verbatim from this plan (including `src/messaging/messaging.ts`). Implement `src/domain/version.ts`. Copy the captured JSON into `src/testing/sample-backup.ts` as a typed `TabTabBackup` constant.
-- [ ] **Step 6:** Add scripts to `package.json`: `dev` (`wxt`), `build` (`wxt build`), `typecheck` (`tsc --noEmit`), `test` (`vitest run`), `test:watch` (`vitest`). Add a placeholder `src/domain/version.test.ts` proving monotonic bump.
+- [x] **Step 1:** `pnpm dlx wxt@latest init open-tabtab --template react` (TypeScript is the default; there is no `react-ts` template) into a temp dir, then move its config into the repo root (or run init at root). Keep `raw/`, `spec/`, `plan/`, `AGENTS.md` untouched; they are reference-only and outside the WXT build. Confirm `entrypoints/` + `wxt.config.ts` live at repo root.
+- [x] **Step 2:** Add deps: `pnpm add react react-dom @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @webext-core/messaging`; dev deps: `pnpm add -D wxt @wxt-dev/module-react typescript vitest @testing-library/react @testing-library/user-event jsdom`.
+- [x] **Step 3:** In `wxt.config.ts` set `manifest.permissions = ['storage','tabs','tabGroups']`, `manifest.host_permissions = ['https://api.github.com/*']` (add `https://gist.githubusercontent.com/*` only if Task 2 needs raw-content fallback), and configure the `newtab` entrypoint to override the new-tab page. Set `modules: ['@wxt-dev/module-react']`.
+- [x] **Step 4:** Create `vitest.config.ts` importing `WxtVitest` from **`wxt/testing/vitest-plugin`** (`plugins: [WxtVitest()]`); it polyfills `browser` via `@webext-core/fake-browser` and sets up module resolution. Set `environment: 'jsdom'`. In tests, import `fakeBrowser` from **`wxt/testing/fake-browser`** and `fakeBrowser.reset()` in `beforeEach`.
+- [x] **Step 5:** Author all §0 contract files verbatim from this plan (including `src/messaging/messaging.ts`). Implement `src/domain/version.ts`. Copy the captured JSON into `src/testing/sample-backup.ts` as a typed `TabTabBackup` constant.
+- [x] **Step 6:** Add scripts to `package.json`: `dev` (`wxt`), `build` (`wxt build`), `typecheck` (`tsc --noEmit`), `test` (`vitest run`), `test:watch` (`vitest`). Add a placeholder `src/domain/version.test.ts` proving monotonic bump.
 
 #### 0.4 Verification
+
 - Run: `pnpm typecheck` → passes (all contracts compile).
 - Run: `pnpm test` → the version test passes: `nextVersion(5)===Math.max(Date.now(),6)`, and `nextVersion(Date.now()+10_000)===prev+1` (future-version case bumps by 1).
 - Run: `pnpm build` → produces `.output/chrome-mv3/` with a `newtab` override in the generated manifest (`chrome_url_overrides.newtab`) and the 3 permissions.
 - Run: `pnpm dev` → a Chromium launches; opening a new tab shows "Hello Open TabTab".
 
 #### 0.5 Notes
+
 - WXT storage keys use the `local:` prefix so `storage.getItem('local:workspace')` targets `chrome.storage.local`.
 - Do not commit `.output/` or `.wxt/` (add to `.gitignore`).
 - Keep every file < 400 lines and every function < 100 lines (repo convention); split modules if they grow.
@@ -250,14 +258,17 @@ None. This blocks all other tasks.
 ### Task 1: Domain model + pure operations + backup adapter
 
 #### 1.1 Intent
+
 Implement all workspace mutations as **pure functions** `(Workspace, args) => Workspace` (no `chrome.*`, no I/O, no version bump inside — the caller bumps), plus the TabTab import adapter, export serializer, and backup validation. This is the testable heart of the app.
 
 #### 1.2 Files
+
 - Create: `src/domain/operations.ts` (one exported pure fn per mutation; see list below)
 - Create: `src/domain/backup.ts` (`parseBackup`, `serializeBackup`, `fromTabTab`, `bootstrapWorkspace`)
 - Test: `src/domain/operations.test.ts`, `src/domain/backup.test.ts`
 
 #### 1.3 Dependencies
+
 Task 0 (types, version, sample fixture).
 
 - [ ] **Step 1:** Implement operations mirroring the command set: `createSpace`, `renameSpace`, `deleteSpace`, `reorderSpaces`, `createGroup`, `renameGroup`, `deleteGroup`, `reorderGroups`, `createSavedTab`, `editSavedTab`, `deleteSavedTab`, `reorderSavedTabs`, `moveSavedTab`, `saveBrowserTab`, `stashCurrentTabs`. Each returns a **new** `Workspace` (immutable update); generate ids with `crypto.randomUUID()`. `deleteSpace` removes both `spaces[id]` and its `spaceOrder` entry. `reorderSpaces` only reorders `spaceOrder`. `stashCurrentTabs` prepends/append a new group whose name is the caller-provided timestamp string.
@@ -267,6 +278,7 @@ Task 0 (types, version, sample fixture).
 - [ ] **Step 5:** Write tests (below).
 
 #### 1.4 Verification
+
 - Run: `pnpm test src/domain` → all pass. Required cases:
   - CRUD + reorder for spaces, groups, tabs each produce expected shape and **do not mutate the input** (`Object.is` on input preserved).
   - `moveSavedTab` across groups removes from source, inserts at target index.
@@ -275,21 +287,25 @@ Task 0 (types, version, sample fixture).
   - **Dual-shape import:** `parseBackup` accepts both the TabTab-shaped sample and an internal-shaped (`spaceOrder`) backup, and rejects `{}` / missing fields with `ok:false`.
 
 #### 1.5 Notes
+
 - Operations must **not** call `nextVersion` — the background handler bumps once per committed mutation (Task 5). This keeps operations pure and independently testable.
 - `stashCurrentTabs` receives already-filtered tabs (pinned/own-tab exclusion happens in the UI/browser layer, Task 9); the domain just stores what it's given.
 
 ### Task 2: Storage repository + Gist client + sync reconciliation (pure)
 
 #### 2.1 Intent
+
 Provide the persistence abstraction over extension storage, a GitHub Gist REST client with injectable `fetch`, and the **pure** reconciliation decision function. No background wiring yet (that's Task 6).
 
 #### 2.2 Files
+
 - Create: `src/storage/repository.ts` (`StorageRepository`: get/set workspace, syncState, settings)
 - Create: `src/sync/gist-client.ts` (`GistClient`)
 - Create: `src/sync/reconcile.ts` (pure `decideReconcile(...)`)
 - Test: `src/storage/repository.test.ts`, `src/sync/gist-client.test.ts`, `src/sync/reconcile.test.ts`
 
 #### 2.3 Dependencies
+
 Task 0 (keys, types, sync-state, settings).
 
 - [ ] **Step 1:** `StorageRepository` wraps WXT `storage` (`storage.getItem/setItem` with `STORAGE_KEYS`). Methods: `getWorkspace()/setWorkspace()`, `getSyncState()/setSyncState()`, `getSettings()/setSettings()`, each with sane defaults (`getSettings` defaults `{enabled:false, filename:'open-tabtab-backup.json'}`; `getSyncState` defaults `{status:'idle'}`).
@@ -312,27 +328,32 @@ Task 0 (keys, types, sync-state, settings).
 - [ ] **Step 4:** Write tests (below).
 
 #### 2.4 Verification
+
 - Run: `pnpm test src/storage src/sync` → all pass.
   - Repository: set→get round-trips through `fakeBrowser.storage`; defaults returned when unset. (`import { fakeBrowser } from 'wxt/testing/fake-browser'` and `fakeBrowser.reset()` in `beforeEach`.)
   - GistClient: with a mocked `fetch`, `createGist` POSTs `public:false` + correct filename/content; `updateGist` PATCHes; `getGist(...,filename)` returns `found` (parses content, follows `raw_url` when `truncated`), `missing` (404 / absent file / empty), and `invalid` (bad JSON) correctly; `validateToken` maps non-200 → `false`. Assert `Authorization` header present and token never appears in any thrown message.
   - `decideReconcile`: all four spec rows + the `missing`-remote cases, table-driven, over `found`/`missing` inputs.
 
 #### 2.5 Notes
+
 - Keep `GistClient` transport-only (no storage, no state) so it stays a pure REST wrapper testable with `fetch` mocks.
 - `decideReconcile` is deterministic and side-effect free; Task 6 performs the resulting I/O.
 
 ### Task 3: Browser API wrappers (tabs + tabGroups)
 
 #### 3.1 Intent
+
 Thin, UI-agnostic wrappers over `chrome.tabs` / `chrome.tabGroups` / `chrome.tabs.group` so no component touches raw `chrome.*`. Includes the native tab-group restore.
 
 #### 3.2 Files
+
 - Create: `src/browser/tabs.ts` (`queryCurrentWindowTabs`, `openTab`, `openTabs`, `closeTabs`, `getSelfTabId`)
 - Create: `src/browser/tab-groups.ts` (`openAsTabGroup`)
 - Create: `src/browser/live-tabs.ts` (`subscribeToTabChanges(cb)` — wraps `onCreated/onRemoved/onUpdated/onMoved/onActivated`)
 - Test: `src/browser/tabs.test.ts` (fakeBrowser-based where supported)
 
 #### 3.3 Dependencies
+
 Task 0 (types).
 
 - [ ] **Step 1:** `queryCurrentWindowTabs()` → `chrome.tabs.query({currentWindow:true})` mapped to `{ id, title, url, favIconUrl, pinned }[]`. `getSelfTabId()` resolves the extension's own new-tab id so it can be excluded from stash-close. **Caution:** with a `chrome_url_overrides.newtab` override, the workspace tab may report its URL as either the extension page URL (`chrome.runtime.getURL('newtab.html')`) **or** `chrome://newtab/` depending on how it was opened — match against **both** forms (and consider falling back to the tab that dispatched the stash, e.g. via `chrome.tabs.getCurrent()` in the page context). Verify in Brave during Phase 3.
@@ -342,19 +363,23 @@ Task 0 (types).
 - [ ] **Step 5:** Tests where `fakeBrowser` supports the API (tabs query/create/remove); document any API (`tabGroups`) that `fakeBrowser` cannot fake and defer to Phase 3 manual checks.
 
 #### 3.4 Verification
+
 - Run: `pnpm test src/browser` → tab query/open/close mapping tests pass against `fakeBrowser`.
 - Manual (deferred to Phase 3): confirm `chrome.tabs.group` + `chrome.tabGroups.update` work in Brave (spec risk item).
 
 #### 3.5 Notes
+
 - These wrappers run in the new-tab page context (extension page ⇒ full `chrome.*` access). They are **not** routed through background.
 - Keep pinned-tab / self-tab filtering **out** of these wrappers — callers (Task 9) decide policy; wrappers just expose data + primitives.
 
 ### Task 4: UI shell + components against the in-memory bus
 
 #### 4.1 Intent
+
 Build the full three-column React UI wired to a **local `InMemoryCommandBus`** (backed by Task 1 operations over a seeded workspace) so the entire interface is runnable and verifiable before the background worker exists. No real messaging, no `chrome.*` mutations yet.
 
 #### 4.2 Files
+
 - Create: `src/messaging/in-memory-bus.ts` (`InMemoryCommandBus implements CommandBus`, applies Task 1 operations + version bump + fake syncState in memory)
 - Modify: `entrypoints/newtab/App.tsx` (replace the Task 0 stub with the layout + `CommandBus` React context/provider)
 - Create: `entrypoints/newtab/components/SpacesSidebar.tsx`, `SpaceItem.tsx`
@@ -366,6 +391,7 @@ Build the full three-column React UI wired to a **local `InMemoryCommandBus`** (
 - Test: `entrypoints/newtab/components/*.test.tsx` (Testing Library) for the highest-value components
 
 #### 4.3 Dependencies
+
 Task 1 (operations, used by the in-memory bus) + Task 0 contracts. Can start UI scaffolding immediately against contracts and stub the bus, then swap in real operations when Task 1 lands.
 
 - [ ] **Step 1:** `InMemoryCommandBus`: holds a `Workspace` (seeded from `sample-backup` via `fromTabTab`), applies the matching Task 1 operation per `Command`, bumps version, updates a fake `SyncState`, and notifies `subscribe` listeners. Returns `{ok:true, snapshot}`.
@@ -376,10 +402,12 @@ Task 1 (operations, used by the in-memory bus) + Task 0 contracts. Can start UI 
 - [ ] **Step 6:** Component tests for `SpacesSidebar` (create/rename/delete dispatch the right command), `GroupRow` (rename/delete, and `+ add tab` opens `SavedTabForm`), `SavedTabForm` (submit in create mode dispatches `createSavedTab` with `{spaceId, groupId, title, url}`), and `SavedTabCard` (edit/delete), asserting the `CommandBus.dispatch` mock is called with correct payloads.
 
 #### 4.4 Verification
+
 - Run: `pnpm test entrypoints/newtab` → component tests pass.
 - Run: `pnpm dev` → new-tab shows the three columns seeded with the sample backup (二次元 / Dev spaces, their groups and cards visible; right column shows mock tabs). Creating/renaming/deleting spaces, groups, and tabs updates the UI live (via in-memory bus). This satisfies "first screen is the workspace" + "usable with sync disabled".
 
 #### 4.5 Notes
+
 - Keep components presentational; all writes go through `dispatch`. This is exactly what makes the Phase-2 swap to `RuntimeCommandBus` a one-line provider change.
 - Selection persistence key (e.g. `local:ui.selectedSpaceId`) is UI-only and separate from workspace/sync/settings.
 - Match the reference density (compact cards, 4–5 card columns) but do not build theming/i18n (out of scope).
@@ -391,14 +419,17 @@ Task 1 (operations, used by the in-memory bus) + Task 0 contracts. Can start UI 
 ### Task 5: Background command handler (mutation owner)
 
 #### 5.1 Intent
+
 Make the background service worker the sole workspace writer: receive `Command`s (over the typed `@webext-core/messaging` channel), load current workspace, apply the Task 1 operation, bump version **once**, persist, update sync state per the sync-enablement rule, and enqueue a push when configured. State reaches the UI via storage (each page's `storage.watch`), **not** a broadcast message. Sync push enqueue is a hook filled by Task 6.
 
 #### 5.2 Files
+
 - Create: `src/background/handler.ts` (`handleCommand(cmd, deps): Promise<CommandResult>`)
 - Modify: `entrypoints/background.ts` (register the `@webext-core/messaging` `onMessage('dispatchCommand', …)` handler → `handleCommand`)
 - Test: `src/background/handler.test.ts`
 
 #### 5.3 Dependencies
+
 Task 1 (operations), Task 2 (repository). Sync deps (Task 6) injected via a `SyncEngine` interface stubbed here.
 
 - [ ] **Step 1:** `handleCommand`: `switch(cmd.type)` → map to the Task 1 operation; for mutation commands: load workspace, apply op, `version = nextVersion(current.version)`, `setWorkspace`, then update `syncState` per the **sync-enablement rule (Codex #4)** and enqueue accordingly:
@@ -412,26 +443,31 @@ Task 1 (operations), Task 2 (repository). Sync deps (Task 6) injected via a `Syn
 - [ ] **Step 4:** Wrap all handling in try/catch → `{ok:false, error}` (never throw across the message boundary). Never log tokens.
 
 #### 5.4 Verification
+
 - Run: `pnpm test src/background` → with `fakeBrowser` storage + a stub `SyncEngine`:
   - With sync **enabled+configured** settings seeded: dispatching `createSpace` persists a workspace whose `version` strictly increased and whose `syncState.pendingVersion===version`; `enqueuePush` called exactly once. Rapid dispatch of N commands bumps version monotonically N times (once each).
   - With sync **disabled**: the same dispatch persists the workspace + bumped version but leaves `syncState.status==='idle'` with **no** `pendingVersion`, and `enqueuePush` is **not** called (Codex #4).
 - Run: `pnpm build` → background bundles without error.
 
 #### 5.5 Notes
+
 - Version is bumped here and **only** here (operations stay pure). Exactly one bump per committed mutation is a spec-required invariant and is directly asserted.
 
 ### Task 6: Sync engine + serial push queue + reconciliation
 
 #### 6.1 Intent
+
 Implement best-effort, local-first sync: a serial queue that pushes the newest snapshot, startup/pull reconciliation using `decideReconcile`, failure handling that never blocks local saves, and conflict surfacing.
 
 #### 6.2 Files
+
 - Create: `src/sync/queue.ts` (`SerialPushQueue`)
 - Create: `src/background/sync-engine.ts` (`SyncEngine`: `enqueuePush`, `reconcile`, `pull`, `push`, `setSettings`, `testConnection`, `createGist`, `resolveConflict`)
 - Modify: `entrypoints/background.ts` (construct the real `SyncEngine` from `GistClient` + `StorageRepository` and inject it into `handleCommand`, replacing Task 5's no-op stub — this is the integration point that wires sync into the mutation path)
 - Test: `src/sync/queue.test.ts`, `src/background/sync-engine.test.ts`
 
 #### 6.3 Dependencies
+
 Task 2 (gist-client, reconcile, repository), Task 5 (handler injects the engine).
 
 - [ ] **Step 1:** `SerialPushQueue`: at most one in-flight push; if `enqueuePush` is called while running, set a `dirty` flag; when the current push finishes, if `dirty`, run again reading the **latest** workspace snapshot from storage (coalesces rapid mutations into one trailing push). Expose a promise-free fire-and-forget `enqueue()`.
@@ -443,6 +479,7 @@ Task 2 (gist-client, reconcile, repository), Task 5 (handler injects the engine)
 - [ ] **Step 5:** Persist enough of `SyncState` to storage that a cold-started worker recovers `dirty`/`conflict` and can retry (MV3 workers can be evicted — spec risk).
 
 #### 6.4 Verification
+
 - Run: `pnpm test src/sync src/background/sync-engine.test.ts` → required cases:
   - **Local save succeeds when push fails:** stub `updateGist` to reject → workspace still saved (Task 5 path), `status` becomes `error`/`dirty`, `pendingVersion` retained, no throw.
   - **Serial queue coalescing:** fire 5 `enqueuePush` during one slow push → exactly one trailing push runs afterward and it carries the newest version.
@@ -451,6 +488,7 @@ Task 2 (gist-client, reconcile, repository), Task 5 (handler injects the engine)
   - **`resolveConflict('useRemote')`** refetches remote, replaces local, and does **not** enqueue a push.
 
 #### 6.5 Notes
+
 - The queue is the **only** writer path to Gist; nothing else calls `updateGist` directly.
 - The synced JSON is `serializeBackup(workspace)` (internal `Workspace` shape) only — it must never include token or `GistSettings`/`SyncState` (spec: "must not include the PAT or local sync settings").
 - First-configure-with-existing-remote is handled naturally: bootstrap left sync clean, so `clean/moved → replaceLocal`. If the user made real edits first (pending set), it becomes `conflict` — safe. Document this in the settings UI copy (Task 10).
@@ -458,14 +496,17 @@ Task 2 (gist-client, reconcile, repository), Task 5 (handler injects the engine)
 ### Task 7: Runtime command bus + UI wiring
 
 #### 7.1 Intent
+
 Replace the in-memory bus with a `RuntimeCommandBus` that messages the background worker, so the real UI drives real persisted state and sync.
 
 #### 7.2 Files
+
 - Create: `src/messaging/runtime-bus.ts` (`RuntimeCommandBus implements CommandBus`: `dispatch` via the typed `@webext-core/messaging` `sendMessage('dispatchCommand', cmd)`; `subscribe` via WXT `storage.watch`)
 - Modify: `entrypoints/newtab/App.tsx` (provide `RuntimeCommandBus` instead of in-memory)
 - Test: `src/messaging/runtime-bus.test.ts`
 
 #### 7.3 Dependencies
+
 Task 4 (UI + bus interface), Task 5 (handler answering messages).
 
 - [ ] **Step 1:** `RuntimeCommandBus.dispatch(cmd)` → `sendMessage('dispatchCommand', cmd)` returning `CommandResult`. `subscribe(listener)` registers `storage.watch` on `local:workspace`, `local:syncState`, and `local:settings`; on any change it re-reads all three, builds a fresh `Snapshot` (deriving `PublicGistSettings` so the token never reaches the UI), and calls `listener`. On mount, `dispatch({type:'getState'})` once to hydrate.
@@ -473,23 +514,28 @@ Task 4 (UI + bus interface), Task 5 (handler answering messages).
 - [ ] **Step 3:** Verify multi-page consistency: two open new-tab pages both reflect a mutation made in one (driven by `storage.watch`, not a broadcast message).
 
 #### 7.4 Verification
+
 - Run: `pnpm test src/messaging` → runtime bus maps `dispatch`↔`sendMessage('dispatchCommand', …)`; and a `storage.setItem` on a watched key drives `subscribe` listeners with a snapshot whose settings expose `hasToken` but not `token` (fakeBrowser storage + messaging).
 - Run: `pnpm dev` → all Task-4 UI actions now persist across reloads (state survives new-tab reopen). Open two new-tab pages; a change in one appears in the other via `storage.watch`.
 
 #### 7.5 Notes
+
 - Keep the `CommandBus` interface identical; only the implementation swaps. If a component needed changes to swap buses, the abstraction leaked — fix the component, not the interface.
 
 ### Task 8: Drag-and-drop interactions
 
 #### 8.1 Intent
+
 Wire `dnd-kit` so every spec-required drag produces exactly one mutation on drop, with no writes during hover/move.
 
 #### 8.2 Files
+
 - Modify: `entrypoints/newtab/App.tsx` (top-level `DndContext` + `onDragEnd`), `SpacesSidebar.tsx`, `WorkspaceView.tsx`, `GroupRow.tsx`, `SavedTabCard.tsx`, `CurrentTabsSidebar.tsx`
 - Create: `entrypoints/newtab/dnd/dnd-config.ts` (sensors, collision, id encoding helpers), `entrypoints/newtab/dnd/on-drag-end.ts` (pure mapping: drag result → `Command`)
 - Test: `entrypoints/newtab/dnd/on-drag-end.test.ts`
 
 #### 8.3 Dependencies
+
 Task 7 (dispatch reaches background).
 
 - [ ] **Step 1:** Encode draggable ids with a type prefix (`space:<id>`, `group:<spaceId>:<id>`, `tab:<spaceId>:<groupId>:<id>`, `browserTab:<tabId>`) and droppable targets similarly, so `onDragEnd` can decode source/target unambiguously. **For browser-tab draggables, attach the tab payload to dnd-kit's `data`** via `useDraggable({ id, data: { kind:'browserTab', tab: { title, url, favIconUrl } } })` so the drop has everything `saveBrowserTab` needs (Codex #8) — an id alone is insufficient.
@@ -498,23 +544,28 @@ Task 7 (dispatch reaches background).
 - [ ] **Step 4:** `onDragEnd` dispatches the mapped command (one per drop). Ensure no `dispatch` fires during `onDragOver`/move.
 
 #### 8.4 Verification
+
 - Run: `pnpm test entrypoints/newtab/dnd` → `mapDragEndToCommand` returns the correct command for each of the 5 drag scenarios (including a `browserTab` drop that produces a valid `saveBrowserTab` from `active.data.current.tab`) and `null` for drops onto the same slot.
 - Run: `pnpm dev` → manually perform each drag: reorder spaces, reorder groups, reorder tabs, move a tab across groups, drag a right-sidebar browser tab onto a group. Each results in exactly one persisted mutation (verify version increments by 1 per drop; hovering does not change version).
 
 #### 8.5 Notes
+
 - Keep `mapDragEndToCommand` pure and separate from React so the mutation-per-drop guarantee is unit-tested without a DOM.
 
 ### Task 9: Browser actions in the UI (open / restore / stash)
 
 #### 9.1 Intent
+
 Wire the real browser behaviors: live current-tabs list, open saved tab/group, native tab-group restore, one-click stash-all, and Alt-click open-and-delete.
 
 #### 9.2 Files
+
 - Modify: `CurrentTabsSidebar.tsx` (use `live-tabs` subscription), `SavedTabCard.tsx` + `GroupRow.tsx` (open handlers), `GroupToolbar.tsx` (open-as-group)
 - Create: `entrypoints/newtab/hooks/useLiveTabs.ts` (wraps `src/browser/live-tabs`), `entrypoints/newtab/actions/stash.ts`, `entrypoints/newtab/actions/open.ts`
 - Test: `entrypoints/newtab/actions/stash.test.ts`
 
 #### 9.3 Dependencies
+
 Task 3 (browser wrappers), Task 7 (dispatch), **Task 8 (must land first)** — Task 8 and this task both modify `CurrentTabsSidebar.tsx`, `SavedTabCard.tsx`, and `GroupRow.tsx`, so run them serially (8 → 9), not concurrently.
 
 - [ ] **Step 1:** `useLiveTabs()` subscribes via `subscribeToTabChanges` → keeps the right sidebar in sync with the real window. Replace the Task-4 mock tab source.
@@ -524,24 +575,29 @@ Task 3 (browser wrappers), Task 7 (dispatch), **Task 8 (must land first)** — T
 - [ ] **Step 5:** Tests for `buildStashPlan` (pinned + self excluded; timestamp name; payload shape).
 
 #### 9.4 Verification
+
 - Run: `pnpm test entrypoints/newtab/actions` → `buildStashPlan` excludes pinned + self, names the group by timestamp.
 - Run: `pnpm dev` (manual): right sidebar mirrors real tabs; clicking a card opens it; Alt-click opens + removes the card; open-as-group creates a native group; stash-all saves a timestamped group and closes only non-pinned, non-self tabs after save.
 
 #### 9.5 Notes
+
 - The stash close-after-save ordering is the single most important correctness point here; keep `dispatch → await ok → closeTabs` explicit and never reorder.
 
 ### Task 10: Settings page + sync UI + conflict resolution
 
 #### 10.1 Intent
+
 Give the user manual control of PAT/Gist config and recovery, and surface sync status/conflicts, all via the existing sync commands.
 
 #### 10.2 Files
+
 - Create: `entrypoints/newtab/components/settings/SettingsPanel.tsx`, `GistConfigForm.tsx`, `SyncStatusBar.tsx`, `ConflictBanner.tsx`, `BackupImportExport.tsx`
 - Create: `entrypoints/newtab/hooks/useSettings.ts`
 - Modify: `App.tsx` / left sidebar footer (open Settings)
 - Test: (mostly manual; add a component test for `ConflictBanner` action dispatch)
 
 #### 10.3 Dependencies
+
 Task 2 + Task 6 (sync engine behind commands), Task 7 (dispatch).
 
 - [ ] **Step 1:** `GistConfigForm`: PAT input (masked, never rendered back from storage — show `hasToken`; a separate "Clear token" control sends `{clearToken:true}`), enable toggle, filename (default `open-tabtab-backup.json`), "Paste existing Gist ID" **or** "Create new private Gist" (`createGist`), "Test connection" (`testConnection`). Persist via `setGistSettings` sending a **`GistSettingsPatch`** — changing `enabled`/`gistId`/`filename` omits `token`, so the stored PAT is preserved (Codex #9); only typing a new PAT sends `token`.
@@ -551,10 +607,12 @@ Task 2 + Task 6 (sync engine behind commands), Task 7 (dispatch).
 - [ ] **Step 5:** Ensure the token is never displayed or logged; the UI reads `PublicGistSettings.hasToken` only.
 
 #### 10.4 Verification
+
 - Run: `pnpm dev` (manual): configure a real PAT + create/paste a Gist; make a mutation → observe automatic push (status → idle, lastSyncedVersion updates). Toggle `enabled` off/on and confirm the stored PAT survives (Codex #9). Disable network or use a bad token → local save still succeeds, status → error/dirty, and a later "Push local to Gist" recovers. Export produces a valid internal-shape file; importing it (and importing the captured TabTab-shaped file) restores the workspace. Force a conflict (edit gist externally + make a local edit) → `ConflictBanner` appears and both resolutions behave per spec.
 - Run: `pnpm test` (whole suite green) + `pnpm typecheck` + `pnpm build`.
 
 #### 10.5 Notes
+
 - Settings can be a modal/overlay inside the new-tab page (no separate options page required for MVP).
 
 ---
@@ -564,12 +622,15 @@ Task 2 + Task 6 (sync engine behind commands), Task 7 (dispatch).
 ### Task 11: Brave end-to-end acceptance
 
 #### 11.1 Intent
+
 Run the spec's "Browser manual tests in Brave" checklist against a real Brave profile to confirm extension-level behavior that can't be unit-tested.
 
 #### 11.2 Files
+
 - Create: `docs/manual-test-checklist.md` (record pass/fail + Brave/OS versions)
 
 #### 11.3 Dependencies
+
 All prior tasks.
 
 - [ ] **Step 1:** `pnpm build`; load `.output/chrome-mv3` as an unpacked extension in Brave (`brave://extensions`, Developer mode). Confirm it takes over the new-tab page and the workspace is the first screen.
@@ -581,9 +642,11 @@ All prior tasks.
 - [ ] **Step 7:** Import the captured `tabtab_backup_20260701_1437.json` and confirm spaces/groups/tabs render correctly (二次元: 7 groups, Dev: 2 groups).
 
 #### 11.4 Verification
+
 - Every checklist item recorded pass in `docs/manual-test-checklist.md`. Any failure is filed against the owning task and fixed before sign-off.
 
 #### 11.5 Notes
+
 - If Brave blocks `file://` opening, note it (spec-acknowledged limitation) rather than treating it as a bug.
 
 ---
