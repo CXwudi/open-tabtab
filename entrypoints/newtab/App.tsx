@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { InMemoryCommandBus } from '@/src/messaging/in-memory-bus';
+import { useEffect, useMemo, useState } from 'react';
+import { RuntimeCommandBus } from '@/src/messaging/runtime-bus';
 import { CommandBusProvider, useSnapshot } from './hooks/useSnapshot';
 import { useSelectedSpace } from './hooks/useSelectedSpace';
 import SpacesSidebar from './components/SpacesSidebar';
@@ -51,9 +51,14 @@ function NewTabWorkspace() {
   );
 }
 
-/** Root new-tab component: provides the in-memory bus and the workspace UI. */
+/** Root new-tab component: provides the runtime bus and the workspace UI. */
 export default function App() {
-  const bus = useMemo(() => new InMemoryCommandBus(), []);
+  const bus = useMemo(() => new RuntimeCommandBus(), []);
+
+  useEffect(() => {
+    void bus.dispatch({ type: 'reconcile' }).catch(() => undefined);
+  }, [bus]);
+
   return (
     <CommandBusProvider bus={bus}>
       <NewTabWorkspace />

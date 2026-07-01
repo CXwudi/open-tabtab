@@ -509,9 +509,9 @@ Replace the in-memory bus with a `RuntimeCommandBus` that messages the backgroun
 
 Task 4 (UI + bus interface), Task 5 (handler answering messages).
 
-- [ ] **Step 1:** `RuntimeCommandBus.dispatch(cmd)` → `sendMessage('dispatchCommand', cmd)` returning `CommandResult`. `subscribe(listener)` registers `storage.watch` on `local:workspace`, `local:syncState`, and `local:settings`; on any change it re-reads all three, builds a fresh `Snapshot` (deriving `PublicGistSettings` so the token never reaches the UI), and calls `listener`. On mount, `dispatch({type:'getState'})` once to hydrate.
-- [ ] **Step 2:** Swap the provider in `App.tsx`. On app startup, `dispatch({type:'reconcile'})` (spec: reconcile on new-tab startup if sync configured).
-- [ ] **Step 3:** Verify multi-page consistency: two open new-tab pages both reflect a mutation made in one (driven by `storage.watch`, not a broadcast message).
+- [x] **Step 1:** `RuntimeCommandBus.dispatch(cmd)` → `sendMessage('dispatchCommand', cmd)` returning `CommandResult`. `subscribe(listener)` registers `storage.watch` on `local:workspace`, `local:syncState`, and `local:settings`; on any change it re-reads all three, builds a fresh `Snapshot` (deriving `PublicGistSettings` so the token never reaches the UI), and calls `listener`. On mount, `dispatch({type:'getState'})` once to hydrate.
+- [x] **Step 2:** Swap the provider in `App.tsx`. On app startup, `dispatch({type:'reconcile'})` (spec: reconcile on new-tab startup if sync configured).
+- [x] **Step 3:** Verify multi-page consistency: two open new-tab pages both reflect a mutation made in one (driven by `storage.watch`, not a broadcast message).
 
 #### 7.4 Verification
 
