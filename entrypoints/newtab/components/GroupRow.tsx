@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Group, SavedTab } from '@/src/domain/types';
 import { encodeGroupId, encodeTabId, type DndDragData } from '../dnd/dnd-config';
+import { openSavedGroup, openSavedGroupAsNativeGroup, openSavedTab } from '../actions/open';
 import { useDispatch } from '../hooks/useSnapshot';
 import InlineEditable from './common/InlineEditable';
 import ConfirmDialog from './common/ConfirmDialog';
@@ -53,6 +54,36 @@ export default function GroupRow({ spaceId, group, tabs, groupOrder, groupTabOrd
     setForm(null);
   }
 
+  async function handleOpenTab(tab: SavedTab, event: MouseEvent<HTMLDivElement>) {
+    const deleteAfterOpen = event.altKey;
+    const background = event.ctrlKey || event.metaKey;
+
+    await openSavedTab(tab.url, { background });
+    if (deleteAfterOpen) {
+      void dispatch({ type: 'deleteSavedTab', spaceId, groupId: group.id, tabId: tab.id });
+    }
+  }
+
+  async function handleOpenGroup(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    const deleteAfterOpen = event.altKey;
+
+    await openSavedGroup(group.tabs.map((tab) => tab.url));
+    if (deleteAfterOpen) {
+      void dispatch({ type: 'deleteGroup', spaceId, groupId: group.id });
+    }
+  }
+
+  async function handleOpenAsGroup(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    const deleteAfterOpen = event.altKey;
+
+    await openSavedGroupAsNativeGroup(group.name, group.tabs.map((tab) => tab.url));
+    if (deleteAfterOpen) {
+      void dispatch({ type: 'deleteGroup', spaceId, groupId: group.id });
+    }
+  }
+
   return (
     <section
       ref={sortable.setNodeRef}
@@ -87,9 +118,8 @@ export default function GroupRow({ spaceId, group, tabs, groupOrder, groupTabOrd
         />
         <span className="group-count">{group.tabs.length}</span>
         <div className="group-actions">
-          {/* Open actions are wired in Task 9. */}
-          <button type="button" className="icon-btn" title="Open all tabs (Task 9)">↗</button>
-          <button type="button" className="icon-btn" title="Open as tab group (Task 9)">▦</button>
+          <button type="button" className="icon-btn" title="Open all tabs" onClick={(event) => void handleOpenGroup(event)}>↗</button>
+          <button type="button" className="icon-btn" title="Open as tab group" onClick={(event) => void handleOpenAsGroup(event)}>▦</button>
           <button
             type="button"
             className="text-btn"
@@ -156,6 +186,7 @@ export default function GroupRow({ spaceId, group, tabs, groupOrder, groupTabOrd
                   tab={tab}
                   orderedIds={orderedTabIds}
                   groupTabOrders={groupTabOrders}
+                  onOpen={(event) => void handleOpenTab(tab, event)}
                   onEdit={() => setForm({ mode: 'edit', tab })}
                   onDelete={() => setPendingDeleteTab(tab)}
                 />

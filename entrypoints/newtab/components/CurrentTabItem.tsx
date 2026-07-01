@@ -10,11 +10,12 @@ import type { BrowserTabView } from './CurrentTabsSidebar';
  */
 export default function CurrentTabItem({ tab }: { tab: BrowserTabView }) {
   const draggable = useDraggable({
-    id: encodeBrowserTabId(tab.id),
+    id: encodeBrowserTabId(tab.id ?? encodeURIComponent(tab.url)),
     data: {
       kind: 'browserTab',
       tab: { title: tab.title, url: tab.url, favIconUrl: tab.favIconUrl },
     } satisfies DndDragData,
+    disabled: !tab.url,
   });
   const style = {
     transform: CSS.Translate.toString(draggable.transform),

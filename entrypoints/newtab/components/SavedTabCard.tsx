@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { SavedTab } from '@/src/domain/types';
@@ -10,6 +10,7 @@ type SavedTabCardProps = {
   tab: SavedTab;
   orderedIds: string[];
   groupTabOrders: Record<string, string[]>;
+  onOpen: (event: MouseEvent<HTMLDivElement>) => void;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -25,10 +26,12 @@ export default function SavedTabCard({
   tab,
   orderedIds,
   groupTabOrders,
+  onOpen,
   onEdit,
   onDelete,
 }: SavedTabCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const suppressOpenRef = useRef(false);
   const sortable = useSortable({
     id: encodeTabId(spaceId, groupId, tab.id),
     data: { kind: 'tab', spaceId, groupId, orderedIds, groupTabOrders } satisfies DndDragData,
@@ -38,12 +41,36 @@ export default function SavedTabCard({
     transition: sortable.transition,
   };
 
+  useEffect(() => {
+    if (sortable.isDragging) {
+      suppressOpenRef.current = true;
+      return;
+    }
+
+    if (!suppressOpenRef.current) return;
+    const timer = setTimeout(() => {
+      suppressOpenRef.current = false;
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [sortable.isDragging]);
+
+  function handleClick(event: MouseEvent<HTMLDivElement>) {
+    if (suppressOpenRef.current) {
+      suppressOpenRef.current = false;
+      return;
+    }
+
+    onOpen(event);
+  }
+
   return (
     <div
       ref={sortable.setNodeRef}
       style={style}
       className={`tab-card ${sortable.isDragging ? 'tab-card--dragging' : ''}`}
       title={tab.url}
+      onClick={handleClick}
       {...sortable.attributes}
       {...sortable.listeners}
     >
@@ -59,7 +86,10 @@ export default function SavedTabCard({
           className="icon-btn tab-card-menu-btn"
           aria-label={`Actions for ${tab.title || tab.url}`}
           aria-haspopup="menu"
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={(event) => {
+            event.stopPropagation();
+            setMenuOpen((open) => !open);
+          }}
         >
           ⋯
         </button>
@@ -70,13 +100,17 @@ export default function SavedTabCard({
               className="menu-backdrop"
               aria-hidden="true"
               tabIndex={-1}
-              onClick={() => setMenuOpen(false)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setMenuOpen(false);
+              }}
             />
             <div className="menu-list" role="menu">
               <button
                 type="button"
                 role="menuitem"
-                onClick={() => {
+                onClick={(event) => {
+                  event.stopPropagation();
                   setMenuOpen(false);
                   onEdit();
                 }}
@@ -87,7 +121,8 @@ export default function SavedTabCard({
                 type="button"
                 role="menuitem"
                 className="danger"
-                onClick={() => {
+                onClick={(event) => {
+                  event.stopPropagation();
                   setMenuOpen(false);
                   onDelete();
                 }}

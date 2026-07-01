@@ -1,14 +1,9 @@
 import { useMemo, useState } from 'react';
+import type { BrowserTab } from '@/src/browser/tabs';
 import CurrentTabItem from './CurrentTabItem';
 
-/** Lightweight view of a browser tab (mock data in Phase 1, live in Task 9). */
-export type BrowserTabView = {
-  id: number;
-  title: string;
-  url: string;
-  favIconUrl?: string;
-  pinned?: boolean;
-};
+/** Lightweight view of a browser tab rendered in the current-tabs sidebar. */
+export type BrowserTabView = BrowserTab;
 
 type CurrentTabsSidebarProps = {
   tabs: BrowserTabView[];
@@ -17,8 +12,7 @@ type CurrentTabsSidebarProps = {
 
 /**
  * Right sidebar showing the current window's tabs with count, sort toggle,
- * save-all affordance, and a title/url filter. Live wiring and save-all
- * behavior land in Task 9; here it renders the injected `tabs`.
+ * save-all affordance, and a title/url filter.
  */
 export default function CurrentTabsSidebar({ tabs, onSaveAll }: CurrentTabsSidebarProps) {
   const [search, setSearch] = useState('');
@@ -54,7 +48,8 @@ export default function CurrentTabsSidebar({ tabs, onSaveAll }: CurrentTabsSideb
             type="button"
             className="icon-btn"
             aria-label="Save all tabs"
-            title="Save all tabs (Task 9)"
+            title="Save all tabs"
+            disabled={!onSaveAll}
             onClick={onSaveAll}
           >
             ⤓
@@ -72,8 +67,8 @@ export default function CurrentTabsSidebar({ tabs, onSaveAll }: CurrentTabsSideb
       />
 
       <div className="current-tab-list">
-        {visible.map((tab) => (
-          <CurrentTabItem key={tab.id} tab={tab} />
+        {visible.map((tab, index) => (
+          <CurrentTabItem key={tab.id ?? `${tab.url}:${index}`} tab={tab} />
         ))}
         {visible.length === 0 ? <p className="empty-hint">No open tabs match.</p> : null}
       </div>

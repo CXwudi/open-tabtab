@@ -568,11 +568,11 @@ Wire the real browser behaviors: live current-tabs list, open saved tab/group, n
 
 Task 3 (browser wrappers), Task 7 (dispatch), **Task 8 (must land first)** — Task 8 and this task both modify `CurrentTabsSidebar.tsx`, `SavedTabCard.tsx`, and `GroupRow.tsx`, so run them serially (8 → 9), not concurrently.
 
-- [ ] **Step 1:** `useLiveTabs()` subscribes via `subscribeToTabChanges` → keeps the right sidebar in sync with the real window. Replace the Task-4 mock tab source.
-- [ ] **Step 2:** Open a saved tab: click → `openTab(url)`; Ctrl/Cmd-click → open in background (browser default); Alt-click → `openTab` **then** dispatch `deleteSavedTab` (open-and-delete). Open a group: `openTabs(urls)`; Alt-click → open then `deleteGroup`.
-- [ ] **Step 3:** Open-as-group: `openAsTabGroup(group.name, urls)` (Task 3). Do not delete the saved group unless Alt-click open-and-delete was used.
-- [ ] **Step 4:** Stash-all: `buildStashPlan(liveTabs, selfTabId)` (pure) → filters out pinned + the extension's own new-tab, builds a timestamp group name + tab payloads; dispatch `stashCurrentTabs`; **await ok**; then `closeTabs(idsToClose)`. Order matters: close only **after** local save succeeds (spec).
-- [ ] **Step 5:** Tests for `buildStashPlan` (pinned + self excluded; timestamp name; payload shape).
+- [x] **Step 1:** `useLiveTabs()` subscribes via `subscribeToTabChanges` → keeps the right sidebar in sync with the real window. Replace the Task-4 mock tab source.
+- [x] **Step 2:** Open a saved tab: click → `openTab(url)`; Ctrl/Cmd-click → open in background (browser default); Alt-click → `openTab` **then** dispatch `deleteSavedTab` (open-and-delete). Open a group: `openTabs(urls)`; Alt-click → open then `deleteGroup`.
+- [x] **Step 3:** Open-as-group: `openAsTabGroup(group.name, urls)` (Task 3). Do not delete the saved group unless Alt-click open-and-delete was used.
+- [x] **Step 4:** Stash-all: `buildStashPlan(liveTabs, selfTabId)` (pure) → filters out pinned + the extension's own new-tab, builds a timestamp group name + tab payloads; dispatch `stashCurrentTabs`; **await ok**; then `closeTabs(idsToClose)`. Order matters: close only **after** local save succeeds (spec).
+- [x] **Step 5:** Tests for `buildStashPlan` (pinned + self excluded; timestamp name; payload shape).
 
 #### 9.4 Verification
 
