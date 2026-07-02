@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, type Mock } from 'vitest';
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { Workspace } from '../domain/types';
 import { GistClient } from './gist-client';
 
@@ -63,6 +63,25 @@ function requestBody(init: RequestInit): unknown {
 }
 
 describe('GistClient', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('binds the default global fetch receiver', async () => {
+    const fetchImpl = vi.fn(function (this: unknown) {
+      if (this !== globalThis) {
+        throw new TypeError('Illegal invocation');
+      }
+
+      return Promise.resolve(new Response(null, { status: 200 }));
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    const client = new GistClient();
+
+    await expect(client.validateToken(token)).resolves.toBe(true);
+  });
+
   it('validates a token with GET /gists and maps non-200 to false', async () => {
     const fetchMock = createFetchMock();
     const client = new GistClient(fetchMock);

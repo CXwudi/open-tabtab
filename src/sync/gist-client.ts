@@ -24,7 +24,7 @@ type GistFileResponse = {
 
 /** GitHub Gist REST client with injectable fetch for tests. */
 export class GistClient {
-  constructor(private readonly fetchImpl: typeof fetch = fetch) {}
+  constructor(private readonly fetchImpl: typeof fetch = globalThis.fetch.bind(globalThis)) {}
 
   /** Checks whether the token can access the authenticated user's Gists. */
   async validateToken(token: string): Promise<boolean> {

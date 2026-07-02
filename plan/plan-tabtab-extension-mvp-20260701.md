@@ -633,13 +633,13 @@ Run the spec's "Browser manual tests in Brave" checklist against a real Brave pr
 
 All prior tasks.
 
-- [ ] **Step 1:** `pnpm build`; load `.output/chrome-mv3` as an unpacked extension in Brave (`brave://extensions`, Developer mode). Confirm it takes over the new-tab page and the workspace is the first screen.
-- [ ] **Step 2:** Current-tabs sidebar reflects real open tabs (open/close some and watch it update).
-- [ ] **Step 3:** Drag a real browser tab into a group → saved as a card.
-- [ ] **Step 4:** Stash-all → timestamped group created; non-pinned/non-self tabs close **only after** save; pinned + the workspace tab survive.
-- [ ] **Step 5:** Open one saved tab; open a group as a native Brave tab group and confirm the group title is set (validates `chrome.tabs.group` + `chrome.tabGroups.update` in Brave — spec risk item).
-- [ ] **Step 6:** Configure PAT + Gist; make a mutation and confirm the automatic push; then disable network / use a bad token and confirm local save still succeeds and status goes dirty/error.
-- [ ] **Step 7:** Import the captured `tabtab_backup_20260701_1437.json` and confirm spaces/groups/tabs render correctly (二次元: 7 groups, Dev: 2 groups).
+- [x] **Step 1:** `pnpm build`; load `.output/chrome-mv3` as an unpacked extension in Brave (`brave://extensions`, Developer mode). Confirm it takes over the new-tab page and the workspace is the first screen.
+- [x] **Step 2:** Current-tabs sidebar reflects real open tabs (open/close some and watch it update).
+- [x] **Step 3:** Drag a real browser tab into a group → saved as a card.
+- [x] **Step 4:** Stash-all → timestamped group created; non-pinned/non-self tabs close **only after** save; pinned + the workspace tab survive.
+- [x] **Step 5:** Open one saved tab; open a group as a native Brave tab group and confirm the group title is set (validates `chrome.tabs.group` + `chrome.tabGroups.update` in Brave — spec risk item).
+- [x] **Step 6:** Configure PAT + Gist; make a mutation and confirm the automatic push; then disable network / use a bad token and confirm local save still succeeds and status goes dirty/error.
+- [x] **Step 7:** Import the captured `tabtab_backup_20260701_1437.json` and confirm spaces/groups/tabs render correctly (二次元: 7 groups, Dev: 2 groups).
 
 #### 11.4 Verification
 
