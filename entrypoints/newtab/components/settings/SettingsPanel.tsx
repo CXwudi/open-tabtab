@@ -1,4 +1,5 @@
 import type { Snapshot } from '@/src/messaging/protocol';
+import AppearanceSettings from './AppearanceSettings';
 import ConflictBanner from './ConflictBanner';
 import GistConfigForm from './GistConfigForm';
 import SyncStatusBar from './SyncStatusBar';
@@ -28,6 +29,7 @@ export default function SettingsPanel({ snapshot, onClose }: SettingsPanelProps)
           <ConflictBanner lastError={snapshot.syncState.lastError} />
         ) : null}
 
+        <AppearanceSettings settings={snapshot.settings} />
         <SyncStatusBar workspace={snapshot.workspace} syncState={snapshot.syncState} />
         <GistConfigForm settings={snapshot.settings} />
         <BackupImportExport workspace={snapshot.workspace} />

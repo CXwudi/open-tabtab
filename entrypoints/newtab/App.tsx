@@ -5,6 +5,7 @@ import { RuntimeCommandBus } from '@/src/messaging/runtime-bus';
 import { CommandBusProvider, useDispatch, useSnapshot } from './hooks/useSnapshot';
 import { useLiveTabs } from './hooks/useLiveTabs';
 import { useSelectedSpace } from './hooks/useSelectedSpace';
+import { useThemeMode } from './hooks/useThemeMode';
 import { buildStashPlan } from './actions/stash';
 import { appCollisionDetection, useDndSensors } from './dnd/dnd-config';
 import { mapDragEndToCommand } from './dnd/on-drag-end';
@@ -26,6 +27,7 @@ type ActiveDrag = {
 /** The three-column workspace, rendered once a snapshot is available. */
 function NewTabWorkspace() {
   const { snapshot } = useSnapshot();
+  useThemeMode(snapshot?.settings.themeMode ?? 'system');
   const dispatch = useDispatch();
   const sensors = useDndSensors();
   const liveTabs = useLiveTabs();

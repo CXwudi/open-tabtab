@@ -1,5 +1,5 @@
 import type { Workspace } from '../domain/types';
-import type { GistSettings } from '../storage/settings';
+import type { GistSettings, ThemeMode } from '../storage/settings';
 import type { SyncState } from '../storage/sync-state';
 
 export type Command =
@@ -50,6 +50,7 @@ export type GistSettingsPatch = {
   clearToken?: boolean;
   gistId?: string;
   filename?: string;
+  themeMode?: ThemeMode;
 };
 
 export type PublicGistSettings = Omit<GistSettings, 'token'> & {

@@ -53,6 +53,7 @@ async function seedConfigured(repository: StorageRepository, workspace = makeWor
     token: 'secret-token',
     gistId: 'gist-1',
     filename: 'open-tabtab-backup.json',
+    themeMode: 'system',
   });
 }
 
@@ -192,6 +193,24 @@ describe('SyncEngine', () => {
 
     await syncEngine.setSettings({ clearToken: true });
     expect((await repository.getSettings()).token).toBeUndefined();
+  });
+
+  it('preserves token, gistId, filename, and enabled on theme-only patches', async () => {
+    const repository = new StorageRepository();
+    const gistClient = makeGistClient();
+    await seedConfigured(repository);
+    const syncEngine = makeEngine(repository, gistClient);
+
+    await syncEngine.setSettings({ themeMode: 'dark' });
+
+    const settings = await repository.getSettings();
+    expect(settings).toMatchObject({
+      enabled: true,
+      token: 'secret-token',
+      gistId: 'gist-1',
+      filename: 'open-tabtab-backup.json',
+      themeMode: 'dark',
+    });
   });
 
   it('resolves useLocal only after a successful remote update', async () => {

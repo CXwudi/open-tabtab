@@ -69,6 +69,7 @@ describe('handleCommand', () => {
       token: 'secret-token',
       gistId: 'gist-1',
       filename: 'open-tabtab-backup.json',
+      themeMode: 'system',
     });
 
     const result = await handleCommand({ type: 'createSpace', name: 'Research' }, {
@@ -97,6 +98,7 @@ describe('handleCommand', () => {
       token: 'secret-token',
       gistId: 'gist-1',
       filename: 'open-tabtab-backup.json',
+      themeMode: 'system',
     });
 
     const first = await handleCommand({ type: 'createSpace', name: 'A' }, { repository, syncEngine });
@@ -123,6 +125,7 @@ describe('handleCommand', () => {
       token: 'secret-token',
       gistId: 'gist-1',
       filename: 'open-tabtab-backup.json',
+      themeMode: 'system',
     });
 
     const result = await handleCommand({ type: 'createSpace', name: 'Local only' }, {

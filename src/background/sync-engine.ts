@@ -265,6 +265,7 @@ function mergeSettings(settings: GistSettings, patch: GistSettingsPatch): GistSe
     enabled: patch.enabled ?? settings.enabled,
     gistId: patch.gistId ?? settings.gistId,
     filename: patch.filename ?? settings.filename,
+    themeMode: patch.themeMode ?? settings.themeMode,
   };
 
   if (patch.clearToken) {

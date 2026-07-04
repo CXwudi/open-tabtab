@@ -30,6 +30,7 @@ describe('StorageRepository', () => {
     await expect(repository.getSettings()).resolves.toEqual({
       enabled: false,
       filename: 'open-tabtab-backup.json',
+      themeMode: 'system',
     });
   });
 
@@ -62,6 +63,7 @@ describe('StorageRepository', () => {
       token: 'secret-token',
       gistId: 'gist-1',
       filename: 'backup.json',
+      themeMode: 'dark',
     };
 
     await repository.setSettings(settings);

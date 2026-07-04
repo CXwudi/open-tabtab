@@ -7,6 +7,7 @@ import type { SyncState } from './sync-state';
 const DEFAULT_SETTINGS: GistSettings = {
   enabled: false,
   filename: 'open-tabtab-backup.json',
+  themeMode: 'system',
 };
 
 const DEFAULT_SYNC_STATE: SyncState = {

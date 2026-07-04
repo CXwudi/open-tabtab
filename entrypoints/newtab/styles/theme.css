@@ -1,5 +1,6 @@
-/* Single default theme: colors, spacing, and base element resets. */
+/* Theme tokens, spacing, and base element resets. */
 :root {
+  color-scheme: light;
   --bg-app: #f4f5f7;
   --bg-panel: #ffffff;
   --bg-sidebar: #fbfbfd;
@@ -23,6 +24,24 @@
   --space-4: 16px;
 
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-app: #141518;
+  --bg-panel: #191a1e;
+  --bg-sidebar: #121316;
+  --bg-hover: #23252b;
+  --bg-selected: #2a2d34;
+  --border: #25272d;
+  --border-strong: #373a42;
+  --text: #e7e8ec;
+  --text-muted: #a7abb5;
+  --text-faint: #767b86;
+  --accent: #4f6fd6;
+  --accent-hover: #435fbe;
+  --danger: #c9483e;
+  --danger-hover: #a93932;
 }
 
 * {

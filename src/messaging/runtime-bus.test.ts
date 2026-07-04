@@ -41,6 +41,7 @@ describe('RuntimeCommandBus', () => {
         settings: {
           enabled: false,
           filename: 'open-tabtab-backup.json',
+          themeMode: 'system',
           hasToken: false,
         },
       },
@@ -58,6 +59,7 @@ describe('RuntimeCommandBus', () => {
       token: 'secret-token',
       gistId: 'gist-1',
       filename: 'backup.json',
+      themeMode: 'dark',
     });
     await storage.setItem(STORAGE_KEYS.syncState, {
       status: 'dirty',
@@ -80,6 +82,7 @@ describe('RuntimeCommandBus', () => {
         enabled: true,
         gistId: 'gist-1',
         filename: 'backup.json',
+        themeMode: 'dark',
         hasToken: true,
       },
     });

@@ -29,6 +29,7 @@ export class InMemoryCommandBus implements CommandBus {
   private settings: PublicGistSettings = {
     enabled: false,
     filename: DEFAULT_FILENAME,
+    themeMode: 'system',
     hasToken: false,
   };
   private readonly listeners = new Set<(snapshot: Snapshot) => void>();
@@ -125,6 +126,7 @@ export class InMemoryCommandBus implements CommandBus {
       enabled: patch.enabled ?? this.settings.enabled,
       filename: patch.filename ?? this.settings.filename,
       gistId: patch.gistId ?? this.settings.gistId,
+      themeMode: patch.themeMode ?? this.settings.themeMode,
       hasToken: patch.clearToken ? false : patch.token ? true : this.settings.hasToken,
     };
   }
