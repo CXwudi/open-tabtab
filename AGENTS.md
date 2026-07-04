@@ -1,1 +1,1 @@
-The ultimate goal is to make a debloated minimal working version of [TabTab](https://github.com/jackie-feng/tabtab-docs), which was a replacement version of Toby, used to be open source, but now is closed source.
+Please read [DEVELOPERS.md](DEVELOPERS.md) if haven't.
