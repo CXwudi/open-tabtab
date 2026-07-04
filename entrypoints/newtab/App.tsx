@@ -1,4 +1,4 @@
-import { DndContext, type DragEndEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { closeTabs, getSelfTabId } from '@/src/browser/tabs';
 import { RuntimeCommandBus } from '@/src/messaging/runtime-bus';
@@ -11,11 +11,17 @@ import { mapDragEndToCommand } from './dnd/on-drag-end';
 import SpacesSidebar from './components/SpacesSidebar';
 import WorkspaceView from './components/WorkspaceView';
 import CurrentTabsSidebar from './components/CurrentTabsSidebar';
+import DragPreview from './components/DragPreview';
 import SettingsPanel from './components/settings/SettingsPanel';
 import './styles/theme.css';
 import './styles/layout.css';
 import './styles/components.css';
 import './styles/workspace.css';
+
+type ActiveDrag = {
+  id: string;
+  data: unknown;
+} | null;
 
 /** The three-column workspace, rendered once a snapshot is available. */
 function NewTabWorkspace() {
@@ -28,12 +34,18 @@ function NewTabWorkspace() {
   const [selfTabId, setSelfTabId] = useState<number | undefined>();
   const [showTabs, setShowTabs] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null);
 
   useEffect(() => {
     void getSelfTabId().then(setSelfTabId).catch(() => undefined);
   }, []);
 
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveDrag({ id: String(event.active.id), data: event.active.data.current });
+  }, []);
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveDrag(null);
     const command = mapDragEndToCommand(
       { id: String(event.active.id), data: event.active.data },
       event.over ? { id: String(event.over.id) } : null,
@@ -66,7 +78,13 @@ function NewTabWorkspace() {
   const selectedSpace = selectedSpaceId ? workspace.spaces[selectedSpaceId] : undefined;
 
   return (
-    <DndContext sensors={sensors} collisionDetection={appCollisionDetection} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={appCollisionDetection}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveDrag(null)}
+    >
       <div className={`app-grid ${showTabs ? '' : 'app-grid--no-tabs'}`}>
         <SpacesSidebar
           workspace={workspace}
@@ -83,6 +101,9 @@ function NewTabWorkspace() {
         </main>
         {showTabs ? <CurrentTabsSidebar tabs={liveTabs} onSaveAll={selectedSpaceId ? handleStashAll : undefined} /> : null}
       </div>
+      <DragOverlay dropAnimation={null}>
+        {activeDrag ? <DragPreview activeId={activeDrag.id} data={activeDrag.data} workspace={workspace} /> : null}
+      </DragOverlay>
       {settingsOpen ? <SettingsPanel snapshot={snapshot} onClose={() => setSettingsOpen(false)} /> : null}
     </DndContext>
   );

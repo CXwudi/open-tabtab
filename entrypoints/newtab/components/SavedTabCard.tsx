@@ -37,7 +37,7 @@ export default function SavedTabCard({
     data: { kind: 'tab', spaceId, groupId, orderedIds, groupTabOrders } satisfies DndDragData,
   });
   const style = {
-    transform: CSS.Transform.toString(sortable.transform),
+    transform: sortable.isDragging ? undefined : CSS.Translate.toString(sortable.transform),
     transition: sortable.transition,
   };
 

@@ -39,7 +39,7 @@ export default function GroupRow({ spaceId, group, tabs, groupOrder, groupTabOrd
     data: { kind: 'group', spaceId, orderedIds: groupOrder } satisfies DndDragData,
   });
   const style = {
-    transform: CSS.Transform.toString(sortable.transform),
+    transform: sortable.isDragging ? undefined : CSS.Translate.toString(sortable.transform),
     transition: sortable.transition,
   };
   const sortableTabIds = tabs.map((tab) => encodeTabId(spaceId, group.id, tab.id));

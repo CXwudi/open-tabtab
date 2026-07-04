@@ -34,7 +34,7 @@ export default function SpaceItem({
     data: { kind: 'space', orderedIds } satisfies DndDragData,
   });
   const style = {
-    transform: CSS.Transform.toString(sortable.transform),
+    transform: sortable.isDragging ? undefined : CSS.Translate.toString(sortable.transform),
     transition: sortable.transition,
   };
 

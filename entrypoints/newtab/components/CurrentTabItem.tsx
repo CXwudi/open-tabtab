@@ -18,7 +18,7 @@ export default function CurrentTabItem({ tab }: { tab: BrowserTabView }) {
     disabled: !tab.url,
   });
   const style = {
-    transform: CSS.Translate.toString(draggable.transform),
+    transform: draggable.isDragging ? undefined : CSS.Translate.toString(draggable.transform),
   };
 
   return (

@@ -2,6 +2,8 @@ import {
   KeyboardSensor,
   PointerSensor,
   closestCenter,
+  pointerWithin,
+  rectIntersection,
   useSensor,
   useSensors,
   type CollisionDetection,
@@ -32,7 +34,27 @@ export type DecodedDndId =
   | { kind: 'tab'; spaceId: string; groupId: string; tabId: string }
   | { kind: 'browserTab'; tabId: string };
 
-export const appCollisionDetection: CollisionDetection = closestCenter;
+export const appCollisionDetection: CollisionDetection = (args) => {
+  const droppableContainers = args.droppableContainers.filter((container) => (
+    isCompatibleDropTarget(args.active.data.current, String(container.id))
+  ));
+  if (droppableContainers.length === 0) return [];
+
+  const filteredArgs = { ...args, droppableContainers };
+  const pointerCollisions = pointerWithin(filteredArgs);
+  if (pointerCollisions.length > 0) {
+    return prioritizeNestedTabTargets(pointerCollisions, args.active.data.current);
+  }
+
+  const intersections = rectIntersection(filteredArgs);
+  if (intersections.length > 0) {
+    return prioritizeNestedTabTargets(intersections, args.active.data.current);
+  }
+
+  if (args.pointerCoordinates) return [];
+
+  return closestCenter(filteredArgs);
+};
 
 /** Builds pointer and keyboard sensors shared by the new-tab DnD surface. */
 export function useDndSensors() {
@@ -85,4 +107,49 @@ export function decodeDndId(id: string): DecodedDndId | null {
   }
 
   return null;
+}
+
+/** Checks whether a droppable id is relevant for the active drag kind. */
+function isCompatibleDropTarget(data: unknown, targetId: string): boolean {
+  const activeKind = getDragKind(data);
+  const target = decodeDndId(targetId);
+  if (!activeKind || !target) return false;
+
+  if (activeKind === 'space') return target.kind === 'space';
+  if (activeKind === 'group') return target.kind === 'group';
+  if (activeKind === 'tab' || activeKind === 'browserTab') {
+    return target.kind === 'tab' || target.kind === 'group';
+  }
+
+  return false;
+}
+
+/** Prefers saved-tab cards over their parent collection when both collide. */
+function prioritizeNestedTabTargets(
+  collisions: ReturnType<CollisionDetection>,
+  data: unknown,
+): ReturnType<CollisionDetection> {
+  const activeKind = getDragKind(data);
+  if (activeKind !== 'tab' && activeKind !== 'browserTab') return collisions;
+
+  const tabCollisions = collisions.filter((collision) => (
+    decodeDndId(String(collision.id))?.kind === 'tab'
+  ));
+
+  return tabCollisions.length > 0 ? tabCollisions : collisions;
+}
+
+/** Reads the app drag kind from dnd-kit metadata. */
+function getDragKind(data: unknown): DndDragData['kind'] | null {
+  if (!isRecord(data) || typeof data.kind !== 'string') return null;
+  if (data.kind === 'space' || data.kind === 'group' || data.kind === 'tab' || data.kind === 'browserTab') {
+    return data.kind;
+  }
+
+  return null;
+}
+
+/** Checks whether an unknown value is a non-null object. */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
